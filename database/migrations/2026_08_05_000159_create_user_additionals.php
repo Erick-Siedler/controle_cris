@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('table_user_additionals', function (Blueprint $table) {
+        Schema::create('user_additionals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('users_id')
+                ->constrained()
+                ->onDelete('cascade');
+
+            $table->foreignId('groups_id')
                 ->constrained()
                 ->onDelete('cascade');
             
             $table->float('peso_inicial');
             $table->float('meta_peso');
-            $table->boolval('semana_bonus');
+            $table->boolean('semana_bonus')->default(false);
 
             $table->timestamps();
         });
@@ -30,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('table_user_additionals');
+        Schema::dropIfExists('user_additionals');
     }
 };
