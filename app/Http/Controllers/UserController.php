@@ -192,18 +192,6 @@ class UserController extends Controller
             'groups_id' => ['required', 'exists:groups,id'],
             'date' => ['required', 'date', 'date_equals:today'],
             'peso' => ['nullable', 'numeric', 'min:1', 'max:500'],
-            'check_in' => ['required', 'boolean'],
-            'desafio' => ['required', 'boolean'],
-            'balanca' => ['required', 'boolean'],
-            'cafe_da_manha' => ['required', 'boolean'],
-            'ceia' => ['required', 'boolean'],
-            'cha_tarde' => ['required', 'boolean'],
-            'almoco' => ['required', 'boolean'],
-            'ceia_tarde' => ['required', 'boolean'],
-            'cha_noite' => ['required', 'boolean'],
-            'jantar' => ['required', 'boolean'],
-            'ceia_noite' => ['required', 'boolean'],
-            'check_out' => ['required', 'boolean'],
         ]);
         $this->ensureUserBelongsToGroup(
             $data['users_id'],
@@ -220,6 +208,51 @@ class UserController extends Controller
         );
 
         return back()->with('success', 'Daily de hoje salvo com sucesso.');
+    }
+
+    public function updateDailyChecks(Request $request)
+    {
+        $checkFields = [
+            'check_in',
+            'desafio',
+            'balanca',
+            'cafe_da_manha',
+            'ceia',
+            'cha_tarde',
+            'almoco',
+            'ceia_tarde',
+            'cha_noite',
+            'jantar',
+            'ceia_noite',
+            'check_out',
+        ];
+        $rules = [
+            'groups_id' => ['required', 'exists:groups,id'],
+            'date' => ['required', 'date', 'date_equals:today'],
+            'dailies' => ['required', 'array'],
+            'dailies.*' => ['required', 'array'],
+        ];
+
+        foreach ($checkFields as $field) {
+            $rules["dailies.*.{$field}"] = ['present', 'nullable', 'boolean'];
+        }
+
+        $data = $request->validate($rules);
+
+        foreach ($data['dailies'] as $userId => $daily) {
+            $this->ensureUserBelongsToGroup($userId, $data['groups_id']);
+
+            UserDaily::updateOrCreate(
+                [
+                    'users_id' => $userId,
+                    'groups_id' => $data['groups_id'],
+                    'date' => $data['date'],
+                ],
+                collect($daily)->only($checkFields)->all()
+            );
+        }
+
+        return back()->with('success', 'Controles do dia salvos com sucesso.');
     }
 
     private function createUser(Request $request): User

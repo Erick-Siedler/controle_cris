@@ -21,3 +21,7 @@ Route::post(
 )->name('users.storeAdditionalsBatch');
 Route::post('users/updateAdditionals', [UserController::class, 'updateAdditionals'])->name('users.updateAdditionals');
 Route::post('users/updateDaily', [UserController::class, 'updateDaily'])->name('users.updateDaily');
+Route::post(
+    'users/updateDailyChecks',
+    [UserController::class, 'updateDailyChecks']
+)->name('users.updateDailyChecks');

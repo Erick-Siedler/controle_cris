@@ -92,10 +92,10 @@
                             <tr>
                                 <td class="px-4 py-3 font-medium">{{ $day['label'] }}</td>
                                 <td class="px-4 py-3 text-center">{{ $daily?->peso !== null ? number_format($daily->peso, 2, ',', '.') : '—' }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->check_in ? '✓' : '—' }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->desafio ? '✓' : '—' }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->balanca ? '✓' : '—' }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->check_out ? '✓' : '—' }}</td>
+                                <td class="px-4 py-3 text-center">{{ $daily?->check_in === null ? '—' : ($daily->check_in ? '✓' : '✕') }}</td>
+                                <td class="px-4 py-3 text-center">{{ $daily?->desafio === null ? '—' : ($daily->desafio ? '✓' : '✕') }}</td>
+                                <td class="px-4 py-3 text-center">{{ $daily?->balanca === null ? '—' : ($daily->balanca ? '✓' : '✕') }}</td>
+                                <td class="px-4 py-3 text-center">{{ $daily?->check_out === null ? '—' : ($daily->check_out ? '✓' : '✕') }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -104,31 +104,19 @@
         </div>
 
         <div data-participant-panel="chart" class="hidden p-4 sm:p-6">
-            <div class="mb-4 flex flex-wrap gap-5 text-xs font-semibold">
-                <span class="flex items-center gap-2 text-slate-600"><i class="h-0.5 w-7 bg-blue-600"></i> Meta de peso</span>
-                <span class="flex items-center gap-2 text-slate-600"><i class="h-0.5 w-7 bg-purple-500"></i> Peso nas dailies</span>
-            </div>
             <div data-weight-chart data-chart-source="participant-chart-data" class="min-h-80 overflow-x-auto"></div>
         </div>
 
         <div data-participant-panel="all-time" class="hidden p-4 sm:p-6">
-            <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex flex-wrap gap-5 text-xs font-semibold">
-                    <span class="flex items-center gap-2 text-slate-600"><i class="h-0.5 w-7 bg-blue-600"></i> Meta de peso</span>
-                    <span class="flex items-center gap-2 text-slate-600"><i class="h-0.5 w-7 bg-purple-500"></i> Peso nas dailies</span>
-                </div>
-                @if ($allTimeDays->isNotEmpty())
-                    <span class="text-xs text-slate-500">
-                        {{ $allTimeDays->first()['label'] }} até {{ $allTimeDays->last()['label'] }}
-                    </span>
-                @endif
-            </div>
             <div data-weight-chart data-chart-source="participant-all-time-chart-data" class="min-h-80 overflow-x-auto"></div>
         </div>
     </section>
 
     <script id="participant-chart-data" type="application/json">{!! json_encode([
         'name' => $user->name,
+        'program' => 'Programa de Emagrecimento Emocional',
+        'logo' => asset('images/programa-emagrecimento-emocional.png'),
+        'initial' => $initialWeight,
         'goal' => $goalWeight,
         'days' => $days->map(fn ($day) => [
             'date' => $day['date'],
@@ -139,6 +127,9 @@
 
     <script id="participant-all-time-chart-data" type="application/json">{!! json_encode([
         'name' => $user->name,
+        'program' => 'Programa de Emagrecimento Emocional',
+        'logo' => asset('images/programa-emagrecimento-emocional.png'),
+        'initial' => $initialWeight,
         'goal' => $goalWeight,
         'days' => $allTimeDays->map(fn ($day) => [
             'date' => $day['date'],

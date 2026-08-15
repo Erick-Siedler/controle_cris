@@ -31,6 +31,30 @@
         </div>
     @endif
 
+    <div class="mb-6 overflow-x-auto border-b border-slate-200" role="tablist" aria-label="Visualizações do grupo">
+        <div class="flex min-w-max gap-1">
+            <button
+                type="button"
+                role="tab"
+                aria-selected="true"
+                data-group-tab="tables"
+                class="border-b-2 border-purple-700 px-4 py-3 text-sm font-semibold text-purple-800"
+            >
+                Tabelas principais
+            </button>
+            <button
+                type="button"
+                role="tab"
+                aria-selected="false"
+                data-group-tab="daily-control"
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-500 hover:text-purple-800"
+            >
+                Controle diário
+            </button>
+        </div>
+    </div>
+
+    <div data-group-tab-panel="tables" role="tabpanel">
     <div class="mb-3 flex items-center gap-3">
         <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-700 text-sm font-bold text-white">01</span>
         <div>
@@ -120,7 +144,99 @@
             </table>
         </div>
     </section>
+    </div>
 
+    @php
+        $dailyFields = [
+            'check_in' => 'Check-in',
+            'desafio' => 'Desafio',
+            'balanca' => 'Balança',
+            'cafe_da_manha' => 'Café da manhã',
+            'ceia' => 'Ceia',
+            'cha_tarde' => 'Chá da tarde',
+            'almoco' => 'Almoço',
+            'ceia_tarde' => 'Ceia da tarde',
+            'cha_noite' => 'Chá da noite',
+            'jantar' => 'Jantar',
+            'ceia_noite' => 'Ceia da noite',
+            'check_out' => 'Check-out',
+        ];
+    @endphp
+
+    <div data-group-tab-panel="daily-control" role="tabpanel" class="hidden">
+    @if ($group->user_groups->isNotEmpty())
+        <section>
+            <div class="mb-3 flex items-center gap-3">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">✓</span>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Registro do dia</p>
+                    <h2 class="font-semibold text-slate-900">Controle diário · {{ \Carbon\Carbon::parse($today)->format('d/m/Y') }}</h2>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('users.updateDailyChecks') }}">
+                @csrf
+                <input type="hidden" name="groups_id" value="{{ $group->id }}">
+                <input type="hidden" name="date" value="{{ $today }}">
+
+                <div class="overflow-hidden rounded-lg border border-emerald-300 bg-white shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table
+                            class="table-fixed border-collapse text-sm"
+                            style="width: max(100%, {{ 10 + ($group->user_groups->count() * 8) }}rem)"
+                        >
+                            <thead>
+                                <tr class="bg-emerald-700 text-white">
+                                    <th class="sticky left-0 z-20 w-40 border border-emerald-600 bg-emerald-700 px-4 py-3 text-left font-bold">Data / ação</th>
+                                    @foreach ($group->user_groups as $userGroup)
+                                        <th class="w-32 border border-emerald-600 px-3 py-3 text-center font-bold break-words">{{ $userGroup->user->name }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dailyFields as $field => $label)
+                                    <tr class="odd:bg-white even:bg-emerald-50/50">
+                                        <th class="sticky left-0 z-10 border border-slate-200 bg-inherit px-4 py-2.5 text-left font-semibold text-slate-800">
+                                            <span class="block text-xs font-normal text-slate-500">{{ \Carbon\Carbon::parse($today)->format('d/m/Y') }}</span>
+                                            {{ $label }}
+                                        </th>
+                                        @foreach ($group->user_groups as $userGroup)
+                                            @php
+                                                $daily = $todayDailies->get($userGroup->users_id);
+                                                $state = $daily?->{$field};
+                                            @endphp
+                                            <td class="border border-slate-200 px-3 py-2 text-center">
+                                                <input type="hidden" name="dailies[{{ $userGroup->users_id }}][{{ $field }}]" value="{{ $state === null ? '' : (int) $state }}" data-daily-state-input>
+                                                <button
+                                                    type="button"
+                                                    data-daily-state-toggle
+                                                    data-state="{{ $state === null ? 'unset' : ($state ? 'done' : 'not-done') }}"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded border text-base font-bold transition-colors"
+                                                    aria-label="{{ $userGroup->user->name }} · {{ $label }}"
+                                                ></button>
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap gap-4 text-xs text-slate-600">
+                        <span><strong class="text-emerald-700">✓</strong> Fez</span>
+                        <span><strong class="text-red-600">✕</strong> Informou que não fez</span>
+                        <span><strong class="text-slate-400">□</strong> Não informou</span>
+                    </div>
+                    <button class="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Salvar controles do dia</button>
+                </div>
+            </form>
+        </section>
+    @endif
+    </div>
+
+    <div data-group-tab-panel="tables" role="tabpanel">
     @if ($accumulatedRows->isNotEmpty())
         <section class="mt-8">
             <div class="mb-3 flex items-center gap-3">
@@ -208,6 +324,7 @@
             </div>
         </section>
     @endif
+    </div>
 
     <dialog
         id="daily-message"
@@ -239,23 +356,7 @@
     </dialog>
 
     @foreach ($group->user_groups as $userGroup)
-        @php
-            $daily = $todayDailies->get($userGroup->users_id);
-            $dailyFields = [
-                'check_in' => 'Check-in',
-                'desafio' => 'Desafio',
-                'balanca' => 'Balança',
-                'cafe_da_manha' => 'Café da manhã',
-                'ceia' => 'Ceia',
-                'cha_tarde' => 'Chá da tarde',
-                'almoco' => 'Almoço',
-                'ceia_tarde' => 'Ceia da tarde',
-                'cha_noite' => 'Chá da noite',
-                'jantar' => 'Jantar',
-                'ceia_noite' => 'Ceia da noite',
-                'check_out' => 'Check-out',
-            ];
-        @endphp
+        @php $daily = $todayDailies->get($userGroup->users_id); @endphp
 
         <dialog
             id="daily-{{ $userGroup->users_id }}"
@@ -290,25 +391,9 @@
                     >
                 </label>
 
-                <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($dailyFields as $field => $label)
-                        <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 hover:border-purple-300 hover:bg-purple-50">
-                            <input type="hidden" name="{{ $field }}" value="0">
-                            <input
-                                type="checkbox"
-                                name="{{ $field }}"
-                                value="1"
-                                @checked($daily?->{$field})
-                                class="h-4 w-4 accent-purple-700"
-                            >
-                            <span class="text-sm font-medium text-slate-700">{{ $label }}</span>
-                        </label>
-                    @endforeach
-                </div>
-
                 <div class="mt-7 flex justify-end gap-3">
                     <button type="button" data-dialog-close class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cancelar</button>
-                    <button class="rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Salvar daily</button>
+                    <button class="rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Salvar peso</button>
                 </div>
             </form>
         </dialog>

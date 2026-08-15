@@ -199,24 +199,25 @@ class GroupController extends Controller
             ->first();
         $groupStart = $group->start_date->copy()->startOfDay();
         $groupEnd = $group->end_date->copy()->startOfDay();
+        $calendarStart = $groupStart->copy()->startOfWeek(Carbon::MONDAY);
         $weekCount = max(
             1,
             (int) ceil(($groupStart->diffInDays($groupEnd) + 1) / 7)
         );
+        $calendarEnd = $calendarStart->copy()->addWeeks($weekCount);
         $selectedWeek = min(
             $weekCount,
             max(1, $request->integer('week', 1))
         );
-        $weekStart = $groupStart->copy()->addDays(
+        $weekStart = $calendarStart->copy()->addDays(
             ($selectedWeek - 1) * 7
         );
-        $weekEnd = $weekStart->copy()->addDays(6)->min($groupEnd);
+        $weekEnd = $weekStart->copy()->addDays(7);
         $weeks = collect(range(1, $weekCount))->map(function ($week) use (
-            $groupStart,
-            $groupEnd
+            $calendarStart
         ) {
-            $start = $groupStart->copy()->addDays(($week - 1) * 7);
-            $end = $start->copy()->addDays(6)->min($groupEnd);
+            $start = $calendarStart->copy()->addDays(($week - 1) * 7);
+            $end = $start->copy()->addDays(7);
 
             return [
                 'number' => $week,
@@ -257,8 +258,10 @@ class GroupController extends Controller
         $latestWeight = $latestDaily?->peso;
         $allTimeDays = $latestDaily
             ? collect(CarbonPeriod::create(
-                $groupStart,
-                $latestDaily->date
+                $calendarStart,
+                $latestDaily->date->copy()->startOfWeek(Carbon::MONDAY)
+                    ->addWeek()
+                    ->min($calendarEnd)
             ))->map(function (Carbon $date) use ($allTimeDailies) {
                 $key = $date->toDateString();
 
@@ -387,9 +390,9 @@ class GroupController extends Controller
                 continue;
             }
 
-            $dayChange = round($todayWeight - $previousWeight, 3);
+            $dayChange = round($todayWeight - $previousWeight, 1);
             $accumulated = $initialWeight !== null
-                ? round($todayWeight - $initialWeight, 3)
+                ? round($todayWeight - $initialWeight, 1)
                 : null;
             $line = '▪ ' . $userGroup->user->name
                 . ' = *' . $this->formatMessageWeight($dayChange) . '*'
@@ -432,11 +435,11 @@ class GroupController extends Controller
             ...($maintained ?: ['▪ -']),
             '',
             '🏆 *RESULTADO TOTAL DO DIA =* '
-                . $this->formatMessageWeight($dayTotal)
+                . $this->formatMessageWeight(round($dayTotal, 1))
                 . ' ✨🔥🔥👏👏💃🏻',
             '',
             '*TOTAL EM ' . $groupDay . ' DIAS = ('
-                . $this->formatMessageWeight($accumulatedTotal)
+                . $this->formatMessageWeight(round($accumulatedTotal, 1))
                 . ') 🔥🔥🔥👏*',
         ];
 
@@ -457,9 +460,6 @@ class GroupController extends Controller
             ) . 'gr';
         }
 
-        return $sign . rtrim(
-            rtrim(number_format($absolute, 2, ',', '.'), '0'),
-            ','
-        ) . 'Kg';
+        return $sign . number_format($absolute, 1, ',', '.') . 'Kg';
     }
 }
