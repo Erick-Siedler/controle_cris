@@ -85,6 +85,21 @@ document.querySelectorAll('[data-dialog-close]').forEach((button) => {
     });
 });
 
+document.querySelectorAll('dialog').forEach((dialog) => {
+    const dateInput = dialog.querySelector('[data-weight-date]');
+    const weightInput = dialog.querySelector('[data-weight-value]');
+    const historySource = dialog.querySelector('[data-weight-history]');
+
+    if (!dateInput || !weightInput || !historySource) {
+        return;
+    }
+
+    const history = JSON.parse(historySource.textContent);
+    dateInput.addEventListener('change', () => {
+        weightInput.value = history[dateInput.value] ?? '';
+    });
+});
+
 const groupTabs = [...document.querySelectorAll('[data-group-tab]')];
 const groupTabPanels = document.querySelectorAll('[data-group-tab-panel]');
 const groupTabStorageKey = `group-scope-tab:${window.location.pathname}`;
@@ -286,9 +301,6 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
         <line x1="${padding.left}" y1="${y(tick)}" x2="${width - padding.right}" y2="${y(tick)}" stroke="#d7d7d7" />
         <text x="${padding.left - 12}" y="${y(tick) + 4}" text-anchor="end" font-size="12" fill="#171717">${formatWeight(tick)}</text>
     `).join('');
-    const weekSeparators = chart.days.map((day, index) => index > 0 && index % 7 === 0
-        ? `<line x1="${x(index) - 52}" y1="${padding.top}" x2="${x(index) - 52}" y2="${height - padding.bottom}" stroke="#a21caf" stroke-opacity="0.24" stroke-dasharray="4 5" />`
-        : '').join('');
     const labels = chart.days.map((day, index) => `
         <text transform="translate(${x(index) + 3} ${height - 48}) rotate(-48)" text-anchor="end" font-size="12" fill="#171717">${escapeHtml(day.label)}</text>
     `).join('');
@@ -338,7 +350,7 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
                 </div>
             </div>
             <svg viewBox="0 0 ${width} ${height}" class="block w-full" role="img" aria-label="Progresso de ${escapeHtml(chart.name)}">
-                ${grid}${weekSeparators}${labels}${goalLine}${progressLine}${points}
+                ${grid}${labels}${goalLine}${progressLine}${points}
             </svg>
         </div>
     `;

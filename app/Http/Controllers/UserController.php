@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Group;
 use App\Models\User;
 use App\Models\UserAdditionals;
 use App\Models\UserDaily;
@@ -190,13 +191,14 @@ class UserController extends Controller
         $data = $request->validate([
             'users_id' => ['required', 'exists:users,id'],
             'groups_id' => ['required', 'exists:groups,id'],
-            'date' => ['required', 'date', 'date_equals:today'],
+            'date' => ['required', 'date'],
             'peso' => ['nullable', 'numeric', 'min:1', 'max:500'],
         ]);
         $this->ensureUserBelongsToGroup(
             $data['users_id'],
             $data['groups_id']
         );
+        $this->ensureDateBelongsToGroup($data['date'], $data['groups_id']);
 
         $this->saveDaily(
             [
@@ -207,7 +209,7 @@ class UserController extends Controller
             ['peso' => $data['peso']]
         );
 
-        return back()->with('success', 'Daily de hoje salvo com sucesso.');
+        return back()->with('success', 'Peso do dia salvo com sucesso.');
     }
 
     public function updateDailyChecks(Request $request)
@@ -228,7 +230,7 @@ class UserController extends Controller
         ];
         $rules = [
             'groups_id' => ['required', 'exists:groups,id'],
-            'date' => ['required', 'date', 'date_equals:today'],
+            'date' => ['required', 'date'],
             'dailies' => ['required', 'array'],
             'dailies.*' => ['required', 'array'],
         ];
@@ -238,6 +240,7 @@ class UserController extends Controller
         }
 
         $data = $request->validate($rules);
+        $this->ensureDateBelongsToGroup($data['date'], $data['groups_id']);
         $userIds = array_map(
             fn ($userId) => filter_var(
                 $userId,
@@ -279,6 +282,18 @@ class UserController extends Controller
             ->first() ?? new UserDaily($identity);
 
         $daily->fill($values)->save();
+    }
+
+    private function ensureDateBelongsToGroup(string $date, int $groupId): void
+    {
+        $group = Group::findOrFail($groupId);
+
+        abort_unless(
+            $date >= $group->start_date->toDateString()
+                && $date <= $group->end_date->toDateString(),
+            422,
+            'A data deve estar dentro do período do grupo.'
+        );
     }
 
     private function createUser(Request $request): User

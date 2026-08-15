@@ -78,9 +78,20 @@ class GroupController extends Controller
             ->get()
             ->keyBy('users_id');
         $today = now()->toDateString();
+        $selectedDate = $requestDate = request('date', $today);
+        if (! is_string($requestDate)
+            || ! Carbon::hasFormat($requestDate, 'Y-m-d')
+            || $requestDate < $group->start_date->toDateString()
+            || $requestDate > $group->end_date->toDateString()) {
+            $selectedDate = $today;
+        }
+        $selectedDate = min(
+            max($selectedDate, $group->start_date->toDateString()),
+            $group->end_date->toDateString()
+        );
         $todayDailies = UserDaily::where('groups_id', $group->id)
             ->whereIn('users_id', $userIds)
-            ->whereDate('date', $today)
+            ->whereDate('date', $selectedDate)
             ->get()
             ->keyBy('users_id');
         $showToday = $todayDailies->contains(
@@ -170,6 +181,7 @@ class GroupController extends Controller
                 'group',
                 'additionals',
                 'today',
+                'selectedDate',
                 'todayDailies',
                 'showToday',
                 'historyDays',
@@ -240,6 +252,9 @@ class GroupController extends Controller
                     'daily' => $dailies->get($key),
                 ];
             });
+        $chartDays = $days->filter(
+            fn ($day) => $day['daily']?->peso !== null
+        )->values();
         $allTimeDailies = UserDaily::where('groups_id', $group->id)
             ->where('users_id', $user->id)
             ->whereNotNull('peso')
@@ -250,21 +265,11 @@ class GroupController extends Controller
             ->keyBy(fn (UserDaily $daily) => $daily->date->toDateString());
         $latestDaily = $allTimeDailies->last();
         $latestWeight = $latestDaily?->peso;
-        $allTimeDays = $latestDaily
-            ? collect(CarbonPeriod::create(
-                $calendarStart,
-                $latestDaily->date->copy()->startOfWeek(Carbon::MONDAY)
-                    ->addWeek()
-            ))->map(function (Carbon $date) use ($allTimeDailies) {
-                $key = $date->toDateString();
-
-                return [
-                    'date' => $key,
-                    'label' => $date->format('d/m'),
-                    'daily' => $allTimeDailies->get($key),
-                ];
-            })
-            : collect();
+        $allTimeDays = $allTimeDailies->map(fn (UserDaily $daily) => [
+            'date' => $daily->date->toDateString(),
+            'label' => $daily->date->format('d/m'),
+            'daily' => $daily,
+        ])->values();
 
         return view(
             'groups.participants.show',
@@ -275,6 +280,7 @@ class GroupController extends Controller
                 'weeks',
                 'selectedWeek',
                 'days',
+                'chartDays',
                 'allTimeDays',
                 'latestWeight'
             )

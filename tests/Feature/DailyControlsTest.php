@@ -90,6 +90,73 @@ class DailyControlsTest extends TestCase
         $this->assertDatabaseCount('user_dailies', 0);
     }
 
+    public function test_controls_and_weight_can_be_changed_for_a_selected_group_day(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+        $date = '2026-08-08';
+
+        $checksResponse = $this->post(route('users.updateDailyChecks'), [
+            'groups_id' => $group->id,
+            'date' => $date,
+            'dailies' => [$user->id => self::CHECKS],
+        ]);
+        $weightResponse = $this->post(route('users.updateDaily'), [
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => $date,
+            'peso' => 71.4,
+        ]);
+
+        $checksResponse->assertSessionHasNoErrors();
+        $weightResponse->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('user_dailies', [
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => $date.' 00:00:00',
+            'peso' => 71.4,
+            'check_in' => 1,
+            'desafio' => 0,
+        ]);
+    }
+
+    public function test_daily_changes_reject_days_outside_the_group_period(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+
+        $response = $this->post(route('users.updateDaily'), [
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-07-31',
+            'peso' => 71.4,
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseCount('user_dailies', 0);
+    }
+
+    public function test_scope_loads_checks_from_the_selected_day(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+        UserDaily::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-09',
+            'check_in' => true,
+            'peso' => 70.8,
+        ]);
+
+        $response = $this->get(route('groups.scope', [
+            'group' => $group,
+            'date' => '2026-08-09',
+        ]));
+
+        $response->assertOk();
+        $this->assertSame('2026-08-09', $response->viewData('selectedDate'));
+        $selectedDaily = $response->viewData('todayDailies')->get($user->id);
+        $this->assertTrue($selectedDaily->check_in);
+        $this->assertSame(70.8, $selectedDaily->peso);
+    }
+
     private function groupWithUser(): array
     {
         $group = Group::create([

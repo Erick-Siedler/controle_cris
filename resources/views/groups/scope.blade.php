@@ -166,18 +166,27 @@
     <div data-group-tab-panel="daily-control" role="tabpanel" class="hidden">
     @if ($group->user_groups->isNotEmpty())
         <section>
+            <form method="GET" class="mb-5 flex flex-wrap items-end gap-3">
+                <label>
+                    <span class="mb-2 block text-sm font-medium text-slate-700">Dia dos controles</span>
+                    <input type="date" name="date" value="{{ $selectedDate }}"
+                        min="{{ $group->start_date->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
+                        class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+                </label>
+                <button class="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Ver dia</button>
+            </form>
             <div class="mb-3 flex items-center gap-3">
                 <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">✓</span>
                 <div>
                     <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Registro do dia</p>
-                    <h2 class="font-semibold text-slate-900">Controle diário · {{ \Carbon\Carbon::parse($today)->format('d/m/Y') }}</h2>
+                    <h2 class="font-semibold text-slate-900">Controle diário · {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</h2>
                 </div>
             </div>
 
             <form method="POST" action="{{ route('users.updateDailyChecks') }}">
                 @csrf
                 <input type="hidden" name="groups_id" value="{{ $group->id }}">
-                <input type="hidden" name="date" value="{{ $today }}">
+                <input type="hidden" name="date" value="{{ $selectedDate }}">
 
                 <div class="overflow-hidden rounded-lg border border-emerald-300 bg-white shadow-sm">
                     <div class="overflow-x-auto">
@@ -197,7 +206,7 @@
                                 @foreach ($dailyFields as $field => $label)
                                     <tr class="odd:bg-white even:bg-emerald-50/50">
                                         <th class="sticky left-0 z-10 border border-slate-200 bg-inherit px-4 py-2.5 text-left font-semibold text-slate-800">
-                                            <span class="block text-xs font-normal text-slate-500">{{ \Carbon\Carbon::parse($today)->format('d/m/Y') }}</span>
+                                            <span class="block text-xs font-normal text-slate-500">{{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</span>
                                             {{ $label }}
                                         </th>
                                         @foreach ($group->user_groups as $userGroup)
@@ -366,18 +375,24 @@
                 @csrf
                 <input type="hidden" name="users_id" value="{{ $userGroup->users_id }}">
                 <input type="hidden" name="groups_id" value="{{ $group->id }}">
-                <input type="hidden" name="date" value="{{ $today }}">
 
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-purple-700">Daily de hoje</p>
+                        <p class="text-xs font-bold uppercase tracking-wider text-purple-700">Peso por dia</p>
                         <h3 class="mt-1 text-xl font-bold text-slate-900">{{ $userGroup->user->name }}</h3>
-                        <p class="mt-1 text-sm text-slate-500">{{ \Carbon\Carbon::parse($today)->format('d/m/Y') }}</p>
                     </div>
                     <button type="button" data-dialog-close class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500 hover:bg-slate-200">×</button>
                 </div>
 
                 <label class="mt-6 block">
+                    <span class="mb-2 block text-sm font-medium text-slate-700">Dia da pesagem</span>
+                    <input type="date" name="date" value="{{ $selectedDate }}"
+                        min="{{ $group->start_date->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
+                        data-weight-date
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+                </label>
+
+                <label class="mt-4 block">
                     <span class="mb-2 block text-sm font-medium text-slate-700">Peso do dia (kg)</span>
                     <input
                         type="number"
@@ -387,6 +402,7 @@
                         max="500"
                         step="0.01"
                         placeholder="Ex.: 72,50"
+                        data-weight-value
                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                     >
                 </label>
@@ -396,6 +412,12 @@
                     <button class="rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Salvar peso</button>
                 </div>
             </form>
+            <script type="application/json" data-weight-history>{!! json_encode(
+                ($periodDailies->get($userGroup->users_id, collect()))->mapWithKeys(
+                    fn ($item, $date) => [$date => $item->peso]
+                ),
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            ) !!}</script>
         </dialog>
     @endforeach
 @endsection

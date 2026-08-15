@@ -118,7 +118,7 @@
         'logo' => asset('images/programa-emagrecimento-emocional.png'),
         'initial' => $initialWeight,
         'goal' => $goalWeight,
-        'days' => $days->map(fn ($day) => [
+        'days' => $chartDays->map(fn ($day) => [
             'date' => $day['date'],
             'label' => $day['label'],
             'weight' => $day['daily']?->peso,

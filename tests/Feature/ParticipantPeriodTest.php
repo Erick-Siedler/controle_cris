@@ -49,6 +49,35 @@ class ParticipantPeriodTest extends TestCase
         $this->assertSame(70.0, $lastWeightDay['daily']->peso);
     }
 
+    public function test_charts_only_receive_days_that_have_a_weight(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+        UserDaily::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-06',
+            'check_in' => true,
+        ]);
+        UserDaily::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-07',
+            'peso' => 72.3,
+        ]);
+
+        $response = $this->get(route('groups.participants.show', [$group, $user]));
+
+        $response->assertOk();
+        $this->assertSame(
+            ['2026-08-07'],
+            $response->viewData('chartDays')->pluck('date')->all()
+        );
+        $this->assertSame(
+            ['2026-08-07'],
+            $response->viewData('allTimeDays')->pluck('date')->all()
+        );
+    }
+
     private function groupWithUser(): array
     {
         $group = Group::create([
