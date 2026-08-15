@@ -95,10 +95,8 @@ class GroupController extends Controller
         ]);
         $periodDailies = UserDaily::where('groups_id', $group->id)
             ->whereIn('users_id', $userIds)
-            ->whereBetween('date', [
-                $group->start_date->toDateString(),
-                $group->end_date->toDateString(),
-            ])
+            ->whereDate('date', '>=', $group->start_date->toDateString())
+            ->whereDate('date', '<=', $group->end_date->toDateString())
             ->whereNotNull('peso')
             ->orderBy('date')
             ->get()
@@ -130,6 +128,7 @@ class GroupController extends Controller
                 if ($weight === null) {
                     $accumulated[] = null;
                     $dailyElimination[] = null;
+
                     continue;
                 }
 
@@ -204,7 +203,6 @@ class GroupController extends Controller
             1,
             (int) ceil(($groupStart->diffInDays($groupEnd) + 1) / 7)
         );
-        $calendarEnd = $calendarStart->copy()->addWeeks($weekCount);
         $selectedWeek = min(
             $weekCount,
             max(1, $request->integer('week', 1))
@@ -227,10 +225,8 @@ class GroupController extends Controller
         });
         $dailies = UserDaily::where('groups_id', $group->id)
             ->where('users_id', $user->id)
-            ->whereBetween('date', [
-                $weekStart->toDateString(),
-                $weekEnd->toDateString(),
-            ])
+            ->whereDate('date', '>=', $weekStart->toDateString())
+            ->whereDate('date', '<=', $weekEnd->toDateString())
             ->orderBy('date')
             ->get()
             ->keyBy(fn (UserDaily $daily) => $daily->date->toDateString());
@@ -247,10 +243,8 @@ class GroupController extends Controller
         $allTimeDailies = UserDaily::where('groups_id', $group->id)
             ->where('users_id', $user->id)
             ->whereNotNull('peso')
-            ->whereBetween('date', [
-                $groupStart->toDateString(),
-                $groupEnd->toDateString(),
-            ])
+            ->whereDate('date', '>=', $groupStart->toDateString())
+            ->whereDate('date', '<=', $groupEnd->toDateString())
             ->orderBy('date')
             ->get()
             ->keyBy(fn (UserDaily $daily) => $daily->date->toDateString());
@@ -261,7 +255,6 @@ class GroupController extends Controller
                 $calendarStart,
                 $latestDaily->date->copy()->startOfWeek(Carbon::MONDAY)
                     ->addWeek()
-                    ->min($calendarEnd)
             ))->map(function (Carbon $date) use ($allTimeDailies) {
                 $key = $date->toDateString();
 
@@ -394,10 +387,10 @@ class GroupController extends Controller
             $accumulated = $initialWeight !== null
                 ? round($todayWeight - $initialWeight, 1)
                 : null;
-            $line = '▪ ' . $userGroup->user->name
-                . ' = *' . $this->formatMessageWeight($dayChange) . '*'
-                . ($accumulated !== null
-                    ? ' (' . $this->formatMessageWeight($accumulated) . ')'
+            $line = '▪ '.$userGroup->user->name
+                .' = *'.$this->formatMessageWeight($dayChange).'*'
+                .($accumulated !== null
+                    ? ' ('.$this->formatMessageWeight($accumulated).')'
                     : '');
 
             if ($dayChange < 0) {
@@ -420,8 +413,8 @@ class GroupController extends Controller
             $group->start_date->diffInDays(Carbon::parse($today), false) + 1
         );
         $lines = [
-            '*' . mb_strtoupper($group->name)
-                . ' - RESULTADO DO ' . $groupDay . 'º DIA* 🎖',
+            '*'.mb_strtoupper($group->name)
+                .' - RESULTADO DO '.$groupDay.'º DIA* 🎖',
             '',
             '✅ *Eliminou:*',
             '',
@@ -435,12 +428,12 @@ class GroupController extends Controller
             ...($maintained ?: ['▪ -']),
             '',
             '🏆 *RESULTADO TOTAL DO DIA =* '
-                . $this->formatMessageWeight(round($dayTotal, 1))
-                . ' ✨🔥🔥👏👏💃🏻',
+                .$this->formatMessageWeight(round($dayTotal, 1))
+                .' ✨🔥🔥👏👏💃🏻',
             '',
-            '*TOTAL EM ' . $groupDay . ' DIAS = ('
-                . $this->formatMessageWeight(round($accumulatedTotal, 1))
-                . ') 🔥🔥🔥👏*',
+            '*TOTAL EM '.$groupDay.' DIAS = ('
+                .$this->formatMessageWeight(round($accumulatedTotal, 1))
+                .') 🔥🔥🔥👏*',
         ];
 
         return implode("\n", $lines);
@@ -452,14 +445,14 @@ class GroupController extends Controller
         $absolute = abs($weight);
 
         if ($absolute < 1) {
-            return $sign . number_format(
+            return $sign.number_format(
                 round($absolute * 1000),
                 0,
                 ',',
                 '.'
-            ) . 'gr';
+            ).'gr';
         }
 
-        return $sign . number_format($absolute, 1, ',', '.') . 'Kg';
+        return $sign.number_format($absolute, 1, ',', '.').'Kg';
     }
 }

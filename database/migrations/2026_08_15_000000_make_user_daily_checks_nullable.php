@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -32,6 +33,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        foreach (self::CHECK_FIELDS as $field) {
+            DB::table('user_dailies')->whereNull($field)->update([$field => false]);
+        }
+
         Schema::table('user_dailies', function (Blueprint $table) {
             foreach (self::CHECK_FIELDS as $field) {
                 $table->boolean($field)->nullable(false)->change();

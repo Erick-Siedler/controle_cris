@@ -198,13 +198,13 @@ class UserController extends Controller
             $data['groups_id']
         );
 
-        UserDaily::updateOrCreate(
+        $this->saveDaily(
             [
                 'users_id' => $data['users_id'],
                 'groups_id' => $data['groups_id'],
                 'date' => $data['date'],
             ],
-            $data
+            ['peso' => $data['peso']]
         );
 
         return back()->with('success', 'Daily de hoje salvo com sucesso.');
@@ -238,21 +238,47 @@ class UserController extends Controller
         }
 
         $data = $request->validate($rules);
+        $userIds = array_map(
+            fn ($userId) => filter_var(
+                $userId,
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1]]
+            ),
+            array_keys($data['dailies'])
+        );
 
-        foreach ($data['dailies'] as $userId => $daily) {
-            $this->ensureUserBelongsToGroup($userId, $data['groups_id']);
+        abort_if(in_array(false, $userIds, true), 422);
 
-            UserDaily::updateOrCreate(
-                [
-                    'users_id' => $userId,
-                    'groups_id' => $data['groups_id'],
-                    'date' => $data['date'],
-                ],
-                collect($daily)->only($checkFields)->all()
-            );
-        }
+        $groupUserCount = UserGroup::where('groups_id', $data['groups_id'])
+            ->whereIn('users_id', $userIds)
+            ->count();
+
+        abort_unless($groupUserCount === count(array_unique($userIds)), 422);
+
+        DB::transaction(function () use ($data, $userIds, $checkFields) {
+            foreach (array_values($data['dailies']) as $index => $daily) {
+                $this->saveDaily(
+                    [
+                        'users_id' => $userIds[$index],
+                        'groups_id' => $data['groups_id'],
+                        'date' => $data['date'],
+                    ],
+                    collect($daily)->only($checkFields)->all()
+                );
+            }
+        });
 
         return back()->with('success', 'Controles do dia salvos com sucesso.');
+    }
+
+    private function saveDaily(array $identity, array $values): void
+    {
+        $daily = UserDaily::where('users_id', $identity['users_id'])
+            ->where('groups_id', $identity['groups_id'])
+            ->whereDate('date', $identity['date'])
+            ->first() ?? new UserDaily($identity);
+
+        $daily->fill($values)->save();
     }
 
     private function createUser(Request $request): User
