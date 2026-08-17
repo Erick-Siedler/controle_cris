@@ -51,6 +51,15 @@
             >
                 Controle diário
             </button>
+            <button
+                type="button"
+                role="tab"
+                aria-selected="false"
+                data-group-tab="notes"
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-500 hover:text-purple-800"
+            >
+                Anotações
+            </button>
         </div>
     </div>
 
@@ -256,6 +265,111 @@
             </form>
         </section>
     @endif
+    </div>
+
+    @php
+        $noteColors = [
+            'yellow' => 'bg-amber-100',
+            'pink' => 'bg-rose-100',
+            'blue' => 'bg-sky-100',
+            'green' => 'bg-emerald-100',
+            'peach' => 'bg-orange-100',
+        ];
+    @endphp
+    <div data-group-tab-panel="notes" role="tabpanel" class="hidden">
+        <div class="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-amber-800">Mural do grupo</p>
+                <h2 class="mt-1 text-xl font-bold text-slate-900">Anotações de {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</h2>
+                <p class="mt-1 text-sm text-slate-500">Arraste os post-its livres. Fixe uma anotação para travá-la no lugar.</p>
+            </div>
+            <div class="flex flex-wrap items-end gap-3">
+                <form method="GET" class="flex flex-wrap items-end gap-3">
+                    <label>
+                        <span class="mb-2 block text-sm font-medium text-slate-700">Dia das anotações</span>
+                        <input type="date" name="date" value="{{ $selectedDate }}"
+                            min="{{ $group->start_date->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
+                            class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100">
+                    </label>
+                    <button class="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Ver dia</button>
+                </form>
+                <button type="button" data-dialog-open="note-composer"
+                    class="rounded-lg bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800">
+                    + Nova anotação
+                </button>
+            </div>
+        </div>
+
+        <dialog id="note-composer" class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl bg-white p-0 shadow-2xl backdrop:bg-slate-950/50">
+            <div class="p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Mural de {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</p>
+                        <h3 class="mt-1 text-xl font-bold text-slate-900">Novo post-it</h3>
+                    </div>
+                    <button type="button" data-dialog-close class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500 hover:bg-slate-200">×</button>
+                </div>
+                <form method="POST" action="{{ route('groups.notes.store', $group) }}" class="mt-5">
+                    @csrf
+                    <input type="hidden" name="date" value="{{ $selectedDate }}">
+                    <label class="block">
+                        <span class="mb-2 block text-sm font-medium text-slate-700">Anotação</span>
+                        <textarea name="content" rows="6" maxlength="1000" required placeholder="Escreva um lembrete..."
+                            class="w-full resize-y rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100"></textarea>
+                    </label>
+                    <fieldset class="mt-4">
+                        <legend class="mb-2 text-sm font-medium text-slate-700">Cor do papel</legend>
+                        <div class="flex gap-2">
+                            @foreach ($noteColors as $color => $class)
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="color" value="{{ $color }}" class="peer sr-only" @checked($color === 'yellow')>
+                                    <span class="block h-8 w-8 rounded-full border-2 border-white shadow ring-1 ring-slate-300 {{ $class }} peer-checked:ring-2 peer-checked:ring-amber-700" title="{{ ucfirst($color) }}"></span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" data-dialog-close class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cancelar</button>
+                        <button class="rounded-lg bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800">Adicionar ao mural</button>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+
+        <div class="overflow-x-auto rounded-sm bg-amber-950 p-1.5 shadow-xl sm:p-2">
+                <div data-note-board class="note-board relative min-h-[38rem] min-w-[48rem] overflow-hidden border-[6px] border-amber-200 shadow-inner sm:border-8">
+                    @forelse ($notes as $note)
+                        <article
+                            data-note
+                            data-update-url="{{ route('groups.notes.update', [$group, $note]) }}"
+                            data-pinned="{{ $note->is_pinned ? 'true' : 'false' }}"
+                            class="absolute flex h-52 w-52 touch-none flex-col p-4 pt-8 shadow-[3px_6px_12px_rgba(55,36,15,0.28)] transition-shadow {{ $noteColors[$note->color] ?? $noteColors['yellow'] }} {{ $note->is_pinned ? 'cursor-default' : 'cursor-grab active:cursor-grabbing' }}"
+                            style="left: {{ $note->position_x }}%; top: {{ $note->position_y }}%; z-index: {{ $note->z_index }}; transform: rotate({{ (($note->id % 5) - 2) * 0.7 }}deg)"
+                        >
+                            <button type="button" data-note-pin class="absolute left-1/2 top-1 h-7 w-7 -translate-x-1/2 rounded-full text-lg drop-shadow" title="{{ $note->is_pinned ? 'Desafixar anotação' : 'Fixar anotação' }}" aria-label="{{ $note->is_pinned ? 'Desafixar anotação' : 'Fixar anotação' }}">
+                                {{ $note->is_pinned ? '📌' : '📍' }}
+                            </button>
+                            <textarea data-note-content maxlength="1000" aria-label="Texto da anotação"
+                                class="min-h-0 flex-1 resize-none border-0 bg-transparent p-0 text-sm leading-relaxed text-slate-800 outline-none focus:ring-0">{{ $note->content }}</textarea>
+                            <div class="mt-2 flex items-center justify-between gap-2 border-t border-black/10 pt-2">
+                                <span data-note-status class="text-[11px] text-slate-500">{{ $note->is_pinned ? 'Fixada' : 'Arraste para mover' }}</span>
+                                <form method="POST" action="{{ route('groups.notes.destroy', [$group, $note]) }}" data-note-delete-form>
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="text-xs font-semibold text-red-700 hover:text-red-900">Excluir</button>
+                                </form>
+                            </div>
+                        </article>
+                    @empty
+                        <div data-empty-note-board class="absolute inset-0 flex items-center justify-center p-8 text-center">
+                            <div class="rounded-xl bg-white/75 px-6 py-5 shadow-sm backdrop-blur-sm">
+                                <p class="font-semibold text-amber-950">O mural está vazio neste dia.</p>
+                                <p class="mt-1 text-sm text-amber-900/70">Use “Nova anotação” para criar o primeiro post-it.</p>
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+        </div>
     </div>
 
     <div data-group-tab-panel="tables" role="tabpanel">

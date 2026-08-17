@@ -149,6 +149,149 @@ if (groupTabs.length) {
     );
 }
 
+const noteBoard = document.querySelector('[data-note-board]');
+const noteElements = [...document.querySelectorAll('[data-note]')];
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+let noteTopLayer = Math.max(
+    1,
+    ...noteElements.map((note) => Number(note.style.zIndex) || 1)
+);
+
+const saveNote = async (note, values, silent = false) => {
+    const status = note.querySelector('[data-note-status]');
+    const previousStatus = status.textContent;
+
+    if (!silent) {
+        status.textContent = 'Salvando...';
+    }
+
+    try {
+        const response = await fetch(note.dataset.updateUrl, {
+            method: 'PATCH',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify(values),
+        });
+
+        if (!response.ok) {
+            throw new Error('Não foi possível salvar a anotação.');
+        }
+
+        if (!silent) {
+            status.textContent = note.dataset.pinned === 'true'
+                ? 'Fixada'
+                : 'Arraste para mover';
+        }
+    } catch (error) {
+        status.textContent = error.message;
+        window.setTimeout(() => {
+            status.textContent = previousStatus;
+        }, 2500);
+    }
+};
+
+noteElements.forEach((note) => {
+    const pinButton = note.querySelector('[data-note-pin]');
+    const content = note.querySelector('[data-note-content]');
+    let savedContent = content.value;
+
+    pinButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const pinned = note.dataset.pinned !== 'true';
+        note.dataset.pinned = String(pinned);
+        pinButton.textContent = pinned ? '📌' : '📍';
+        pinButton.title = pinned ? 'Desafixar anotação' : 'Fixar anotação';
+        pinButton.setAttribute('aria-label', pinButton.title);
+        note.classList.toggle('cursor-default', pinned);
+        note.classList.toggle('cursor-grab', !pinned);
+        note.classList.toggle('active:cursor-grabbing', !pinned);
+        note.querySelector('[data-note-status]').textContent = pinned
+            ? 'Fixada'
+            : 'Arraste para mover';
+        saveNote(note, { is_pinned: pinned }, true);
+    });
+
+    content.addEventListener('pointerdown', (event) => event.stopPropagation());
+    content.addEventListener('blur', () => {
+        const nextContent = content.value.trim();
+
+        if (!nextContent) {
+            content.value = savedContent;
+            return;
+        }
+
+        if (nextContent !== savedContent) {
+            savedContent = nextContent;
+            content.value = nextContent;
+            saveNote(note, { content: nextContent });
+        }
+    });
+
+    note.addEventListener('pointerdown', (event) => {
+        if (note.dataset.pinned === 'true'
+            || event.target.closest('button, textarea, form')) {
+            return;
+        }
+
+        event.preventDefault();
+        note.setPointerCapture(event.pointerId);
+        noteTopLayer += 1;
+        note.style.zIndex = noteTopLayer;
+        note.style.transform = 'rotate(0deg) scale(1.02)';
+        note.classList.add('shadow-2xl');
+
+        const boardRect = noteBoard.getBoundingClientRect();
+        const noteRect = note.getBoundingClientRect();
+        const offsetX = event.clientX - noteRect.left;
+        const offsetY = event.clientY - noteRect.top;
+
+        const moveNote = (moveEvent) => {
+            const maxLeft = noteBoard.clientWidth - note.offsetWidth;
+            const maxTop = noteBoard.clientHeight - note.offsetHeight;
+            const left = Math.min(
+                Math.max(0, moveEvent.clientX - boardRect.left - offsetX),
+                maxLeft
+            );
+            const top = Math.min(
+                Math.max(0, moveEvent.clientY - boardRect.top - offsetY),
+                maxTop
+            );
+
+            note.style.left = `${(left / noteBoard.clientWidth) * 100}%`;
+            note.style.top = `${(top / noteBoard.clientHeight) * 100}%`;
+        };
+
+        const finishMove = () => {
+            note.removeEventListener('pointermove', moveNote);
+            note.removeEventListener('pointerup', finishMove);
+            note.removeEventListener('pointercancel', finishMove);
+            note.style.transform = 'rotate(0deg)';
+            note.classList.remove('shadow-2xl');
+
+            saveNote(note, {
+                position_x: Math.min(82, parseFloat(note.style.left)),
+                position_y: Math.min(78, parseFloat(note.style.top)),
+                z_index: noteTopLayer,
+            }, true);
+        };
+
+        note.addEventListener('pointermove', moveNote);
+        note.addEventListener('pointerup', finishMove);
+        note.addEventListener('pointercancel', finishMove);
+    });
+});
+
+document.querySelectorAll('[data-note-delete-form]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        if (!window.confirm('Excluir esta anotação do mural?')) {
+            event.preventDefault();
+        }
+    });
+});
+
 const dailyStateStyles = {
     unset: {
         value: '',

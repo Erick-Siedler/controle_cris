@@ -1,12 +1,19 @@
 <?php
 
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\GroupNoteController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [GroupController::class, 'index'])->name('index');
 Route::get('groups/{group}/scope', [GroupController::class, 'scope'])
     ->name('groups.scope');
+Route::post('groups/{group}/notes', [GroupNoteController::class, 'store'])
+    ->name('groups.notes.store');
+Route::patch('groups/{group}/notes/{note}', [GroupNoteController::class, 'update'])
+    ->name('groups.notes.update');
+Route::delete('groups/{group}/notes/{note}', [GroupNoteController::class, 'destroy'])
+    ->name('groups.notes.destroy');
 Route::get(
     'groups/{group}/users/{user}',
     [GroupController::class, 'participant']

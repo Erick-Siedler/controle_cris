@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Group extends Model
 {
-    protected $fillable =[
-        'name', 'start_date', 'end_date'
+    protected $fillable = [
+        'name', 'start_date', 'end_date',
     ];
 
     protected function casts(): array
@@ -21,5 +21,10 @@ class Group extends Model
     public function user_groups()
     {
         return $this->hasMany(UserGroup::class, 'groups_id');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(GroupNote::class, 'groups_id');
     }
 }

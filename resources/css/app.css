@@ -4,3 +4,13 @@
 @source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
 @source '../js/**/*.js';
+
+.note-board {
+    background-color: #b9783e;
+    background-image:
+        radial-gradient(circle at 18% 22%, rgb(74 38 13 / 18%) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 72% 64%, rgb(255 239 199 / 20%) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 43% 81%, rgb(74 38 13 / 14%) 0 1px, transparent 2px),
+        linear-gradient(135deg, rgb(255 255 255 / 5%), rgb(78 39 10 / 8%));
+    background-size: 13px 17px, 19px 23px, 29px 31px, 100% 100%;
+}

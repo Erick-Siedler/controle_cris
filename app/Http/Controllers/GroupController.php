@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Group;
+use App\Models\GroupNote;
 use App\Models\User;
 use App\Models\UserAdditionals;
 use App\Models\UserDaily;
@@ -94,6 +95,11 @@ class GroupController extends Controller
             ->whereDate('date', $selectedDate)
             ->get()
             ->keyBy('users_id');
+        $notes = GroupNote::where('groups_id', $group->id)
+            ->whereDate('date', $selectedDate)
+            ->orderBy('z_index')
+            ->orderBy('id')
+            ->get();
         $showToday = $todayDailies->contains(
             fn (UserDaily $daily) => $daily->peso !== null
         );
@@ -183,6 +189,7 @@ class GroupController extends Controller
                 'today',
                 'selectedDate',
                 'todayDailies',
+                'notes',
                 'showToday',
                 'historyDays',
                 'periodDailies',
