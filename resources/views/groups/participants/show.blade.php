@@ -97,20 +97,25 @@
             <div class="overflow-x-auto">
                 <table class="table-fixed border-collapse text-sm" style="width: max(100%, {{ 12 + ($days->count() * 7) }}rem)">
                     <thead>
-                        <tr class="bg-emerald-700 text-white">
-                            <th class="sticky left-0 z-20 w-48 border border-emerald-600 bg-emerald-700 px-4 py-3 text-left">Ação</th>
+                        <tr class="bg-purple-700 text-white">
+                            <th class="sticky left-0 z-20 w-48 border border-purple-600 bg-purple-700 px-4 py-3 text-left">Ação</th>
                             @foreach ($days as $day)
-                                <th class="w-28 border border-emerald-600 px-3 py-3 text-center">{{ $day['label'] }}</th>
+                                <th class="w-28 border border-purple-600 px-3 py-3 text-center">{{ $day['label'] }}</th>
                             @endforeach
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($dailyPeriods as $period => $fields)
                             <tr>
-                                <th colspan="{{ $days->count() + 1 }}" class="border border-slate-400 bg-white px-4 py-1.5 text-center text-base font-medium text-slate-950">{{ $period }}</th>
+                                <th colspan="{{ $days->count() + 1 }}" class="border border-purple-200 bg-gradient-to-r from-purple-100 via-violet-50 to-purple-100 px-4 py-2 text-center">
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1 text-sm font-bold uppercase tracking-[0.16em] text-purple-900 shadow-sm ring-1 ring-purple-200">
+                                        <span aria-hidden="true">{{ match ($period) { 'Manhã' => '☀', 'Tarde' => '◐', default => '☾' } }}</span>
+                                        {{ $period }}
+                                    </span>
+                                </th>
                             </tr>
                             @foreach ($fields as $field => $label)
-                                <tr class="odd:bg-white even:bg-emerald-50/50">
+                                <tr class="odd:bg-white even:bg-purple-50/50">
                                     <th class="sticky left-0 z-10 border border-slate-200 bg-inherit px-4 py-2.5 text-left font-semibold text-slate-800">{{ $label }}</th>
                                     @foreach ($days as $day)
                                         @php $state = $day['daily']?->{$field}; @endphp

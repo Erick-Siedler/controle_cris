@@ -191,9 +191,9 @@
                 <button class="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Ver dia</button>
             </form>
             <div class="mb-3 flex items-center gap-3">
-                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">✓</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-700 text-sm font-bold text-white">✓</span>
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Registro do dia</p>
+                    <p class="text-xs font-bold uppercase tracking-wider text-purple-700">Registro do dia</p>
                     <h2 class="font-semibold text-slate-900">Controle diário · {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</h2>
                 </div>
             </div>
@@ -203,29 +203,32 @@
                 <input type="hidden" name="groups_id" value="{{ $group->id }}">
                 <input type="hidden" name="date" value="{{ $selectedDate }}">
 
-                <div class="overflow-hidden rounded-lg border border-emerald-300 bg-white shadow-sm">
+                <div class="overflow-hidden rounded-lg border border-purple-300 bg-white shadow-sm">
                     <div class="overflow-x-auto">
                         <table
                             class="table-fixed border-collapse text-sm"
                             style="width: max(100%, {{ 10 + ($group->user_groups->count() * 8) }}rem)"
                         >
                             <thead>
-                                <tr class="bg-emerald-700 text-white">
-                                    <th class="sticky left-0 z-20 w-40 border border-emerald-600 bg-emerald-700 px-4 py-3 text-left font-bold">Data / ação</th>
+                                <tr class="bg-purple-700 text-white">
+                                    <th class="sticky left-0 z-20 w-40 border border-purple-600 bg-purple-700 px-4 py-3 text-left font-bold">Data / ação</th>
                                     @foreach ($group->user_groups as $userGroup)
-                                        <th class="w-32 border border-emerald-600 px-3 py-3 text-center font-bold break-words">{{ $userGroup->user->name }}</th>
+                                        <th class="w-32 border border-purple-600 px-3 py-3 text-center font-bold break-words">{{ $userGroup->user->name }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($dailyPeriods as $period => $dailyFields)
                                     <tr>
-                                        <th colspan="{{ $group->user_groups->count() + 1 }}" class="border border-slate-400 bg-white px-4 py-1.5 text-center text-base font-medium text-slate-950">
-                                            {{ $period }}
+                                        <th colspan="{{ $group->user_groups->count() + 1 }}" class="border border-purple-200 bg-gradient-to-r from-purple-100 via-violet-50 to-purple-100 px-4 py-2 text-center">
+                                            <span class="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1 text-sm font-bold uppercase tracking-[0.16em] text-purple-900 shadow-sm ring-1 ring-purple-200">
+                                                <span aria-hidden="true">{{ match ($period) { 'Manhã' => '☀', 'Tarde' => '◐', default => '☾' } }}</span>
+                                                {{ $period }}
+                                            </span>
                                         </th>
                                     </tr>
                                     @foreach ($dailyFields as $field => $label)
-                                    <tr class="odd:bg-white even:bg-emerald-50/50">
+                                    <tr class="odd:bg-white even:bg-purple-50/50">
                                         <th class="sticky left-0 z-10 border border-slate-200 bg-inherit px-4 py-2.5 text-left font-semibold text-slate-800">
                                             <span class="block text-xs font-normal text-slate-500">{{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</span>
                                             {{ $label }}
@@ -260,7 +263,7 @@
                         <span><strong class="text-red-600">✕</strong> Informou que não fez</span>
                         <span><strong class="text-slate-400">□</strong> Não informou</span>
                     </div>
-                    <button class="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Salvar controles do dia</button>
+                    <button class="rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Salvar controles do dia</button>
                 </div>
             </form>
         </section>
