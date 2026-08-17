@@ -16,16 +16,16 @@ class DailyControlsTest extends TestCase
 
     private const CHECKS = [
         'check_in' => '1',
-        'desafio' => '0',
+        'interacao_livro' => '0',
         'balanca' => null,
         'cafe_da_manha' => null,
-        'ceia' => null,
-        'cha_tarde' => null,
+        'fruta_da_manha' => null,
+        'cha_da_manha' => null,
         'almoco' => null,
-        'ceia_tarde' => null,
-        'cha_noite' => null,
+        'fruta_da_tarde' => null,
+        'cha_da_tarde' => null,
         'jantar' => null,
-        'ceia_noite' => null,
+        'fruta_da_noite' => null,
         'check_out' => null,
     ];
 
@@ -63,11 +63,11 @@ class DailyControlsTest extends TestCase
         $this->assertDatabaseHas('user_dailies', [
             'users_id' => $user->id,
             'check_in' => 1,
-            'desafio' => 0,
+            'interacao_livro' => 0,
         ]);
         $daily = UserDaily::firstOrFail();
         $this->assertTrue($daily->check_in);
-        $this->assertFalse($daily->desafio);
+        $this->assertFalse($daily->interacao_livro);
         $this->assertNull($daily->balanca);
         $this->assertSame(72.5, $daily->peso);
     }
@@ -115,7 +115,7 @@ class DailyControlsTest extends TestCase
             'date' => $date.' 00:00:00',
             'peso' => 71.4,
             'check_in' => 1,
-            'desafio' => 0,
+            'interacao_livro' => 0,
         ]);
     }
 

@@ -216,16 +216,16 @@ class UserController extends Controller
     {
         $checkFields = [
             'check_in',
-            'desafio',
+            'interacao_livro',
             'balanca',
             'cafe_da_manha',
-            'ceia',
-            'cha_tarde',
+            'fruta_da_manha',
+            'cha_da_manha',
             'almoco',
-            'ceia_tarde',
-            'cha_noite',
+            'fruta_da_tarde',
+            'cha_da_tarde',
             'jantar',
-            'ceia_noite',
+            'fruta_da_noite',
             'check_out',
         ];
         $rules = [

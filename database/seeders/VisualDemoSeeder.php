@@ -152,16 +152,16 @@ class VisualDemoSeeder extends Seeder
                         [
                             'peso' => $weight,
                             'check_in' => true,
-                            'desafio' => $completed !== 0,
+                            'interacao_livro' => $completed !== 0,
                             'balanca' => true,
                             'cafe_da_manha' => true,
-                            'ceia' => $completed === 2,
-                            'cha_tarde' => $completed !== 1,
+                            'fruta_da_manha' => $completed === 2,
+                            'cha_da_manha' => $completed !== 0,
                             'almoco' => true,
-                            'ceia_tarde' => $completed === 1,
-                            'cha_noite' => $completed !== 0,
+                            'fruta_da_tarde' => $completed === 1,
+                            'cha_da_tarde' => $completed !== 1,
                             'jantar' => true,
-                            'ceia_noite' => $completed === 2,
+                            'fruta_da_noite' => $completed === 2,
                             'check_out' => $completed !== 0,
                         ]
                     );

@@ -147,19 +147,25 @@
     </div>
 
     @php
-        $dailyFields = [
-            'check_in' => 'Check-in',
-            'desafio' => 'Desafio',
-            'balanca' => 'Balança',
-            'cafe_da_manha' => 'Café da manhã',
-            'ceia' => 'Ceia',
-            'cha_tarde' => 'Chá da tarde',
-            'almoco' => 'Almoço',
-            'ceia_tarde' => 'Ceia da tarde',
-            'cha_noite' => 'Chá da noite',
-            'jantar' => 'Jantar',
-            'ceia_noite' => 'Ceia da noite',
-            'check_out' => 'Check-out',
+        $dailyPeriods = [
+            'Manhã' => [
+                'check_in' => 'Check-in',
+                'interacao_livro' => 'Interação Livro',
+                'balanca' => 'Balança',
+                'cafe_da_manha' => 'Café da Manhã',
+                'fruta_da_manha' => 'FRUTA da Manhã',
+                'cha_da_manha' => 'Chá da Manhã',
+            ],
+            'Tarde' => [
+                'almoco' => 'Almoço',
+                'fruta_da_tarde' => 'FRUTA da Tarde',
+                'cha_da_tarde' => 'Chá da Tarde',
+            ],
+            'Noite' => [
+                'jantar' => 'Jantar',
+                'fruta_da_noite' => 'FRUTA da Noite',
+                'check_out' => 'Check-out',
+            ],
         ];
     @endphp
 
@@ -203,7 +209,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($dailyFields as $field => $label)
+                                @foreach ($dailyPeriods as $period => $dailyFields)
+                                    <tr>
+                                        <th colspan="{{ $group->user_groups->count() + 1 }}" class="border border-slate-400 bg-white px-4 py-1.5 text-center text-base font-medium text-slate-950">
+                                            {{ $period }}
+                                        </th>
+                                    </tr>
+                                    @foreach ($dailyFields as $field => $label)
                                     <tr class="odd:bg-white even:bg-emerald-50/50">
                                         <th class="sticky left-0 z-10 border border-slate-200 bg-inherit px-4 py-2.5 text-left font-semibold text-slate-800">
                                             <span class="block text-xs font-normal text-slate-500">{{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</span>
@@ -226,6 +238,7 @@
                                             </td>
                                         @endforeach
                                     </tr>
+                                    @endforeach
                                 @endforeach
                             </tbody>
                         </table>
