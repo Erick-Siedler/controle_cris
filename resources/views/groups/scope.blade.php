@@ -207,13 +207,13 @@
                     <div class="overflow-x-auto">
                         <table
                             class="table-fixed border-collapse text-sm"
-                            style="width: max(100%, {{ 10 + ($group->user_groups->count() * 8) }}rem)"
+                            style="width: max(100%, {{ 10 + ($group->user_groups->count() * 12) }}rem)"
                         >
                             <thead>
                                 <tr class="bg-purple-700 text-white">
                                     <th class="sticky left-0 z-20 w-40 border border-purple-600 bg-purple-700 px-4 py-3 text-left font-bold">Data / ação</th>
                                     @foreach ($group->user_groups as $userGroup)
-                                        <th class="w-32 border border-purple-600 px-3 py-3 text-center font-bold break-words">{{ $userGroup->user->name }}</th>
+                                        <th class="w-48 min-w-48 max-w-48 border border-purple-600 px-3 py-3 text-center font-bold break-words">{{ $userGroup->user->name }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
