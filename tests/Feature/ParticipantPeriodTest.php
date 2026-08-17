@@ -78,6 +78,33 @@ class ParticipantPeriodTest extends TestCase
         );
     }
 
+    public function test_daily_tab_uses_week_dates_as_columns_for_all_checks(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+        UserDaily::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-06',
+            'peso' => 71.8,
+            'check_in' => true,
+            'interacao_livro' => false,
+            'fruta_da_noite' => true,
+        ]);
+
+        $response = $this->get(route('groups.participants.show', [
+            'group' => $group,
+            'user' => $user,
+            'tab' => 'daily',
+        ]));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['03/08', '04/08', '05/08', '06/08']);
+        $response->assertSeeInOrder(['Manhã', 'Tarde', 'Noite']);
+        $response->assertSee('Interação Livro');
+        $response->assertSee('FRUTA da Noite');
+        $response->assertDontSee('Dia dos controles');
+    }
+
     private function groupWithUser(): array
     {
         $group = Group::create([

@@ -12,6 +12,26 @@
         $remaining = $goalWeight !== null && $latestWeight !== null
             ? max(0, $latestWeight - $goalWeight)
             : null;
+        $dailyPeriods = [
+            'Manhã' => [
+                'check_in' => 'Check-in',
+                'interacao_livro' => 'Interação Livro',
+                'balanca' => 'Balança',
+                'cafe_da_manha' => 'Café da Manhã',
+                'fruta_da_manha' => 'FRUTA da Manhã',
+                'cha_da_manha' => 'Chá da Manhã',
+            ],
+            'Tarde' => [
+                'almoco' => 'Almoço',
+                'fruta_da_tarde' => 'FRUTA da Tarde',
+                'cha_da_tarde' => 'Chá da Tarde',
+            ],
+            'Noite' => [
+                'jantar' => 'Jantar',
+                'fruta_da_noite' => 'FRUTA da Noite',
+                'check_out' => 'Check-out',
+            ],
+        ];
     @endphp
 
     <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -75,31 +95,46 @@
 
         <div data-participant-panel="daily" class="p-5 sm:p-6">
             <div class="overflow-x-auto">
-                <table class="min-w-full border-collapse text-sm">
+                <table class="table-fixed border-collapse text-sm" style="width: max(100%, {{ 12 + ($days->count() * 7) }}rem)">
                     <thead>
-                        <tr class="bg-purple-100 text-purple-950">
-                            <th class="px-4 py-3 text-left">Data</th>
-                            <th class="px-4 py-3 text-center">Peso</th>
-                            <th class="px-4 py-3 text-center">Check-in</th>
-                            <th class="px-4 py-3 text-center">Desafio</th>
-                            <th class="px-4 py-3 text-center">Balança</th>
-                            <th class="px-4 py-3 text-center">Check-out</th>
+                        <tr class="bg-emerald-700 text-white">
+                            <th class="sticky left-0 z-20 w-48 border border-emerald-600 bg-emerald-700 px-4 py-3 text-left">Ação</th>
+                            @foreach ($days as $day)
+                                <th class="w-28 border border-emerald-600 px-3 py-3 text-center">{{ $day['label'] }}</th>
+                            @endforeach
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach ($days as $day)
-                            @php $daily = $day['daily']; @endphp
+                    <tbody>
+                        @foreach ($dailyPeriods as $period => $fields)
                             <tr>
-                                <td class="px-4 py-3 font-medium">{{ $day['label'] }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->peso !== null ? number_format($daily->peso, 2, ',', '.') : '—' }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->check_in === null ? '—' : ($daily->check_in ? '✓' : '✕') }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->desafio === null ? '—' : ($daily->desafio ? '✓' : '✕') }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->balanca === null ? '—' : ($daily->balanca ? '✓' : '✕') }}</td>
-                                <td class="px-4 py-3 text-center">{{ $daily?->check_out === null ? '—' : ($daily->check_out ? '✓' : '✕') }}</td>
+                                <th colspan="{{ $days->count() + 1 }}" class="border border-slate-400 bg-white px-4 py-1.5 text-center text-base font-medium text-slate-950">{{ $period }}</th>
                             </tr>
+                            @foreach ($fields as $field => $label)
+                                <tr class="odd:bg-white even:bg-emerald-50/50">
+                                    <th class="sticky left-0 z-10 border border-slate-200 bg-inherit px-4 py-2.5 text-left font-semibold text-slate-800">{{ $label }}</th>
+                                    @foreach ($days as $day)
+                                        @php $state = $day['daily']?->{$field}; @endphp
+                                        <td class="border border-slate-200 px-3 py-2.5 text-center">
+                                            @if ($state === null)
+                                                <span class="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-white font-bold text-slate-400" title="Não informou">□</span>
+                                            @elseif ($state)
+                                                <span class="inline-flex h-8 w-8 items-center justify-center rounded border border-emerald-600 bg-emerald-600 font-bold text-white" title="Fez">✓</span>
+                                            @else
+                                                <span class="inline-flex h-8 w-8 items-center justify-center rounded border border-red-500 bg-red-50 font-bold text-red-600" title="Informou que não fez">✕</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-4 text-xs text-slate-600">
+                <span><strong class="text-emerald-700">✓</strong> Fez</span>
+                <span><strong class="text-red-600">✕</strong> Informou que não fez</span>
+                <span><strong class="text-slate-400">□</strong> Não informou</span>
             </div>
         </div>
 
