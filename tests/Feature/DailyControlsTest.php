@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserAdditionals;
 use App\Models\UserDaily;
 use App\Models\UserGroup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -155,6 +156,62 @@ class DailyControlsTest extends TestCase
         $selectedDaily = $response->viewData('todayDailies')->get($user->id);
         $this->assertTrue($selectedDaily->check_in);
         $this->assertSame(70.8, $selectedDaily->peso);
+    }
+
+    public function test_daily_message_is_generated_for_the_selected_past_day(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+        $group->update(['name' => 'T59']);
+        UserAdditionals::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'peso_inicial' => 70,
+            'meta_peso' => 60,
+        ]);
+        UserDaily::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-04',
+            'peso' => 69.8,
+        ]);
+        UserDaily::create([
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-05',
+            'peso' => 69.4,
+        ]);
+
+        $response = $this->get(route('groups.scope', [
+            'group' => $group,
+            'date' => '2026-08-05',
+        ]));
+
+        $message = $response->viewData('dailyMessage');
+        $this->assertStringContainsString(
+            '*T59 - PROGRAMA DE EMAGRECIMENTO EMOCIONAL - RESULTADO DO 3º DIA* 🎖',
+            $message
+        );
+        $this->assertStringContainsString(
+            '▪ Participante de teste = *-400gr* (-600gr)',
+            $message
+        );
+        $this->assertStringContainsString(
+            '🏆 *RESULTADO TOTAL DO DIA = -400gr ✨🔥🔥👏👏💃🏻*',
+            $message
+        );
+    }
+
+    public function test_scope_does_not_allow_message_dates_after_today(): void
+    {
+        [$group] = $this->groupWithUser();
+
+        $response = $this->get(route('groups.scope', [
+            'group' => $group,
+            'date' => '2026-08-20',
+        ]));
+
+        $this->assertSame('2026-08-15', $response->viewData('selectedDate'));
+        $this->assertSame('2026-08-15', $response->viewData('messageMaxDate'));
     }
 
     private function groupWithUser(): array

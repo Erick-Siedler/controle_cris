@@ -17,13 +17,29 @@
                 Acompanhamento de peso e metas dos usuários.
             </p>
         </div>
-        <button
-            type="button"
-            data-dialog-open="daily-message"
-            class="rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800"
-        >
-            Gerar mensagem do dia
-        </button>
+        <div class="flex flex-wrap items-end gap-3">
+            <form method="GET" class="flex items-end gap-2">
+                <label>
+                    <span class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">Data da mensagem</span>
+                    <input
+                        type="date"
+                        name="date"
+                        value="{{ $selectedDate }}"
+                        min="{{ $group->start_date->toDateString() }}"
+                        max="{{ $messageMaxDate }}"
+                        class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                    >
+                </label>
+                <button class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Selecionar</button>
+            </form>
+            <button
+                type="button"
+                data-dialog-open="daily-message"
+                class="rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800"
+            >
+                Gerar mensagem de {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}
+            </button>
+        </div>
     </div>
 
     @if ($errors->any())
@@ -186,7 +202,7 @@
                 <label>
                     <span class="mb-2 block text-sm font-medium text-slate-700">Dia dos controles</span>
                     <input type="date" name="date" value="{{ $selectedDate }}"
-                        min="{{ $group->start_date->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
+                        min="{{ $group->start_date->toDateString() }}" max="{{ $messageMaxDate }}"
                         class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 </label>
                 <button class="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Ver dia</button>
@@ -474,7 +490,7 @@
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p class="text-xs font-bold uppercase tracking-wider text-purple-700">Mensagem pronta</p>
-                    <h2 class="mt-1 text-xl font-bold">Resultado do dia</h2>
+                    <h2 class="mt-1 text-xl font-bold">Resultado de {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</h2>
                 </div>
                 <button type="button" data-dialog-close class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500 hover:bg-slate-200">×</button>
             </div>
@@ -518,7 +534,7 @@
                 <label class="mt-6 block">
                     <span class="mb-2 block text-sm font-medium text-slate-700">Dia da pesagem</span>
                     <input type="date" name="date" value="{{ $selectedDate }}"
-                        min="{{ $group->start_date->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
+                        min="{{ $group->start_date->toDateString() }}" max="{{ $messageMaxDate }}"
                         data-weight-date
                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 </label>

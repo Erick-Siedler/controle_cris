@@ -79,16 +79,20 @@ class GroupController extends Controller
             ->get()
             ->keyBy('users_id');
         $today = now()->toDateString();
+        $messageMaxDate = min(
+            $today,
+            $group->end_date->toDateString()
+        );
         $selectedDate = $requestDate = request('date', $today);
         if (! is_string($requestDate)
             || ! Carbon::hasFormat($requestDate, 'Y-m-d')
             || $requestDate < $group->start_date->toDateString()
-            || $requestDate > $group->end_date->toDateString()) {
-            $selectedDate = $today;
+            || $requestDate > $messageMaxDate) {
+            $selectedDate = $messageMaxDate;
         }
         $selectedDate = min(
             max($selectedDate, $group->start_date->toDateString()),
-            $group->end_date->toDateString()
+            $messageMaxDate
         );
         $todayDailies = UserDaily::where('groups_id', $group->id)
             ->whereIn('users_id', $userIds)
@@ -178,7 +182,7 @@ class GroupController extends Controller
             $group,
             $additionals,
             $periodDailies,
-            $today
+            $selectedDate
         );
 
         return view(
@@ -187,6 +191,7 @@ class GroupController extends Controller
                 'group',
                 'additionals',
                 'today',
+                'messageMaxDate',
                 'selectedDate',
                 'todayDailies',
                 'notes',
@@ -364,7 +369,7 @@ class GroupController extends Controller
         Group $group,
         $additionals,
         $periodDailies,
-        string $today
+        string $messageDate
     ): string {
         $eliminated = [];
         $increased = [];
@@ -377,9 +382,9 @@ class GroupController extends Controller
                 $userGroup->users_id,
                 collect()
             );
-            $todayWeight = $userDailies->get($today)?->peso;
+            $selectedWeight = $userDailies->get($messageDate)?->peso;
 
-            if ($todayWeight === null) {
+            if ($selectedWeight === null) {
                 continue;
             }
 
@@ -387,7 +392,7 @@ class GroupController extends Controller
             $initialWeight = $additional?->peso_inicial;
             $previousWeight = $userDailies
                 ->filter(fn (UserDaily $daily) => (
-                    $daily->date->toDateString() < $today
+                    $daily->date->toDateString() < $messageDate
                     && $daily->peso !== null
                 ))
                 ->last()?->peso ?? $initialWeight;
@@ -396,9 +401,9 @@ class GroupController extends Controller
                 continue;
             }
 
-            $dayChange = round($todayWeight - $previousWeight, 1);
+            $dayChange = round($selectedWeight - $previousWeight, 3);
             $accumulated = $initialWeight !== null
-                ? round($todayWeight - $initialWeight, 1)
+                ? round($selectedWeight - $initialWeight, 3)
                 : null;
             $line = '▪ '.$userGroup->user->name
                 .' = *'.$this->formatMessageWeight($dayChange).'*'
@@ -423,10 +428,11 @@ class GroupController extends Controller
 
         $groupDay = (int) max(
             1,
-            $group->start_date->diffInDays(Carbon::parse($today), false) + 1
+            $group->start_date->diffInDays(Carbon::parse($messageDate), false) + 1
         );
         $lines = [
             '*'.mb_strtoupper($group->name)
+                .' - PROGRAMA DE EMAGRECIMENTO EMOCIONAL'
                 .' - RESULTADO DO '.$groupDay.'º DIA* 🎖',
             '',
             '✅ *Eliminou:*',
@@ -438,14 +444,15 @@ class GroupController extends Controller
             ...($increased ?: ['▪ -']),
             '',
             '🔷 *Manteve:*',
+            '',
             ...($maintained ?: ['▪ -']),
             '',
-            '🏆 *RESULTADO TOTAL DO DIA =* '
-                .$this->formatMessageWeight(round($dayTotal, 1))
-                .' ✨🔥🔥👏👏💃🏻',
+            '🏆 *RESULTADO TOTAL DO DIA = '
+                .$this->formatMessageWeight($dayTotal)
+                .' ✨🔥🔥👏👏💃🏻*',
             '',
             '*TOTAL EM '.$groupDay.' DIAS = ('
-                .$this->formatMessageWeight(round($accumulatedTotal, 1))
+                .$this->formatMessageWeight($accumulatedTotal)
                 .') 🔥🔥🔥👏*',
         ];
 
@@ -466,6 +473,8 @@ class GroupController extends Controller
             ).'gr';
         }
 
-        return $sign.number_format($absolute, 1, ',', '.').'Kg';
+        $decimals = abs($absolute - round($absolute)) < 0.0001 ? 0 : 1;
+
+        return $sign.number_format($absolute, $decimals, ',', '.').'Kg';
     }
 }
