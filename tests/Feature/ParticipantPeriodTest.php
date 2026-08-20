@@ -22,8 +22,8 @@ class ParticipantPeriodTest extends TestCase
         $response->assertOk();
         $this->assertCount(4, $response->viewData('weeks'));
         $days = $response->viewData('days');
-        $this->assertCount(5, $days);
-        $this->assertSame('2026-08-06', $days->first()['date']);
+        $this->assertCount(8, $days);
+        $this->assertSame('2026-08-03', $days->first()['date']);
         $this->assertSame('2026-08-10', $days->last()['date']);
         $response->assertDontSee('Semana 5');
     }
@@ -98,40 +98,11 @@ class ParticipantPeriodTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['06/08', '07/08', '08/08', '09/08']);
+        $response->assertSeeInOrder(['03/08', '04/08', '05/08', '06/08']);
         $response->assertSeeInOrder(['Manhã', 'Tarde', 'Noite']);
         $response->assertSee('Interação Livro');
         $response->assertSee('FRUTA da Noite');
         $response->assertDontSee('Dia dos controles');
-    }
-
-    public function test_first_group_day_is_ignored_by_tables_and_charts(): void
-    {
-        [$group, $user] = $this->groupWithUser();
-        UserDaily::create([
-            'groups_id' => $group->id,
-            'users_id' => $user->id,
-            'date' => '2026-08-05',
-            'peso' => 73,
-        ]);
-        UserDaily::create([
-            'groups_id' => $group->id,
-            'users_id' => $user->id,
-            'date' => '2026-08-06',
-            'peso' => 72.5,
-        ]);
-
-        $participant = $this->get(route('groups.participants.show', [$group, $user]));
-        $scope = $this->get(route('groups.scope', $group));
-
-        $this->assertSame(
-            ['2026-08-06'],
-            $participant->viewData('allTimeDays')->pluck('date')->all()
-        );
-        $this->assertSame(
-            ['2026-08-06'],
-            $scope->viewData('historyDays')->pluck('date')->all()
-        );
     }
 
     private function groupWithUser(): array

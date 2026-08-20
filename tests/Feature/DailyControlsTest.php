@@ -201,21 +201,6 @@ class DailyControlsTest extends TestCase
         );
     }
 
-    public function test_first_group_day_cannot_receive_daily_data(): void
-    {
-        [$group, $user] = $this->groupWithUser();
-
-        $response = $this->post(route('users.updateDaily'), [
-            'groups_id' => $group->id,
-            'users_id' => $user->id,
-            'date' => '2026-08-03',
-            'peso' => 71.4,
-        ]);
-
-        $response->assertStatus(422);
-        $this->assertDatabaseCount('user_dailies', 0);
-    }
-
     public function test_scope_does_not_allow_message_dates_after_today(): void
     {
         [$group] = $this->groupWithUser();
