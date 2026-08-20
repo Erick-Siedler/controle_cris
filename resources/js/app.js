@@ -1,6 +1,17 @@
 import * as XLSX from 'xlsx';
 import { toPng } from 'html-to-image';
 
+document.querySelector('[data-system-update-form]')?.addEventListener('submit', (event) => {
+    if (!window.confirm('Buscar e instalar a versão mais recente do sistema agora?')) {
+        event.preventDefault();
+        return;
+    }
+
+    const button = event.currentTarget.querySelector('[data-system-update-button]');
+    button.disabled = true;
+    button.textContent = 'Atualizando...';
+});
+
 const normalizeFileName = (value, fallback) => {
     const normalized = String(value || fallback)
         .normalize('NFD')

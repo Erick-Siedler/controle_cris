@@ -9,9 +9,21 @@
             <h1 class="mt-1 text-3xl font-bold">Grupos</h1>
             <p class="mt-2 text-sm text-slate-500">Visualize e gerencie os grupos cadastrados.</p>
         </div>
-        <a href="{{ route('groups.create') }}" class="inline-flex items-center justify-center rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">
-            + Criar grupo
-        </a>
+        <div class="flex flex-wrap gap-3">
+            <form method="POST" action="{{ route('system.update') }}" data-system-update-form>
+                @csrf
+                <button
+                    type="submit"
+                    data-system-update-button
+                    class="inline-flex items-center justify-center rounded-lg border border-purple-300 bg-white px-4 py-2.5 text-sm font-semibold text-purple-800 hover:bg-purple-50 disabled:cursor-wait disabled:opacity-60"
+                >
+                    Atualizar sistema
+                </button>
+            </form>
+            <a href="{{ route('groups.create') }}" class="inline-flex items-center justify-center rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">
+                + Criar grupo
+            </a>
+        </div>
     </div>
 
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

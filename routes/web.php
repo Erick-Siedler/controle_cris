@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupNoteController;
+use App\Http\Controllers\SystemUpdateController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [GroupController::class, 'index'])->name('index');
+Route::post('system/update', SystemUpdateController::class)
+    ->name('system.update');
 Route::get('groups/{group}/scope', [GroupController::class, 'scope'])
     ->name('groups.scope');
 Route::post('groups/{group}/notes', [GroupNoteController::class, 'store'])
