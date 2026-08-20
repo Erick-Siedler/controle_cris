@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Group extends Model
@@ -26,5 +27,10 @@ class Group extends Model
     public function notes()
     {
         return $this->hasMany(GroupNote::class, 'groups_id');
+    }
+
+    public function effectiveStartDate(): Carbon
+    {
+        return $this->start_date->copy()->addDay();
     }
 }

@@ -25,7 +25,7 @@
                         type="date"
                         name="date"
                         value="{{ $selectedDate }}"
-                        min="{{ $group->start_date->toDateString() }}"
+                        min="{{ $effectiveStart->toDateString() }}"
                         max="{{ $messageMaxDate }}"
                         class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                     >
@@ -202,7 +202,7 @@
                 <label>
                     <span class="mb-2 block text-sm font-medium text-slate-700">Dia dos controles</span>
                     <input type="date" name="date" value="{{ $selectedDate }}"
-                        min="{{ $group->start_date->toDateString() }}" max="{{ $messageMaxDate }}"
+                        min="{{ $effectiveStart->toDateString() }}" max="{{ $messageMaxDate }}"
                         class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 </label>
                 <button class="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Ver dia</button>
@@ -308,7 +308,7 @@
                     <label>
                         <span class="mb-2 block text-sm font-medium text-slate-700">Dia das anotações</span>
                         <input type="date" name="date" value="{{ $selectedDate }}"
-                            min="{{ $group->start_date->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
+                            min="{{ $effectiveStart->toDateString() }}" max="{{ $group->end_date->toDateString() }}"
                             class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100">
                     </label>
                     <button class="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Ver dia</button>
@@ -534,7 +534,7 @@
                 <label class="mt-6 block">
                     <span class="mb-2 block text-sm font-medium text-slate-700">Dia da pesagem</span>
                     <input type="date" name="date" value="{{ $selectedDate }}"
-                        min="{{ $group->start_date->toDateString() }}" max="{{ $messageMaxDate }}"
+                        min="{{ $effectiveStart->toDateString() }}" max="{{ $messageMaxDate }}"
                         data-weight-date
                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 </label>

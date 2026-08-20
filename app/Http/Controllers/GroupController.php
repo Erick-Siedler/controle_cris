@@ -73,6 +73,7 @@ class GroupController extends Controller
     public function scope(Group $group)
     {
         $group->load('user_groups.user');
+        $effectiveStart = $group->effectiveStartDate();
         $userIds = $group->user_groups->pluck('users_id');
         $additionals = UserAdditionals::where('groups_id', $group->id)
             ->whereIn('users_id', $userIds)
@@ -86,12 +87,12 @@ class GroupController extends Controller
         $selectedDate = $requestDate = request('date', $today);
         if (! is_string($requestDate)
             || ! Carbon::hasFormat($requestDate, 'Y-m-d')
-            || $requestDate < $group->start_date->toDateString()
+            || $requestDate < $effectiveStart->toDateString()
             || $requestDate > $messageMaxDate) {
             $selectedDate = $messageMaxDate;
         }
         $selectedDate = min(
-            max($selectedDate, $group->start_date->toDateString()),
+            max($selectedDate, $effectiveStart->toDateString()),
             $messageMaxDate
         );
         $todayDailies = UserDaily::where('groups_id', $group->id)
@@ -108,7 +109,7 @@ class GroupController extends Controller
             fn (UserDaily $daily) => $daily->peso !== null
         );
         $periodDays = collect(CarbonPeriod::create(
-            $group->start_date,
+            $effectiveStart,
             $group->end_date
         ))->map(fn (Carbon $date) => [
             'date' => $date->toDateString(),
@@ -116,7 +117,7 @@ class GroupController extends Controller
         ]);
         $periodDailies = UserDaily::where('groups_id', $group->id)
             ->whereIn('users_id', $userIds)
-            ->whereDate('date', '>=', $group->start_date->toDateString())
+            ->whereDate('date', '>=', $effectiveStart->toDateString())
             ->whereDate('date', '<=', $group->end_date->toDateString())
             ->whereNotNull('peso')
             ->orderBy('date')
@@ -189,6 +190,7 @@ class GroupController extends Controller
             'groups.scope',
             compact(
                 'group',
+                'effectiveStart',
                 'additionals',
                 'today',
                 'messageMaxDate',
@@ -220,7 +222,7 @@ class GroupController extends Controller
         $additional = UserAdditionals::where('groups_id', $group->id)
             ->where('users_id', $user->id)
             ->first();
-        $groupStart = $group->start_date->copy()->startOfDay();
+        $groupStart = $group->effectiveStartDate()->startOfDay();
         $groupEnd = $group->end_date->copy()->startOfDay();
         $calendarStart = $groupStart->copy()->startOfWeek(Carbon::MONDAY);
         $weekCount = max(
@@ -255,6 +257,9 @@ class GroupController extends Controller
             ->get()
             ->keyBy(fn (UserDaily $daily) => $daily->date->toDateString());
         $days = collect(CarbonPeriod::create($weekStart, $weekEnd))
+            ->filter(fn (Carbon $date) => (
+                $date->betweenIncluded($groupStart, $groupEnd)
+            ))
             ->map(function (Carbon $date) use ($dailies) {
                 $key = $date->toDateString();
 
@@ -428,7 +433,8 @@ class GroupController extends Controller
 
         $groupDay = (int) max(
             1,
-            $group->start_date->diffInDays(Carbon::parse($messageDate), false) + 1
+            $group->effectiveStartDate()
+                ->diffInDays(Carbon::parse($messageDate), false) + 1
         );
         $lines = [
             '*'.mb_strtoupper($group->name)

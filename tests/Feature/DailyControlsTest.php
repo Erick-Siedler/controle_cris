@@ -188,7 +188,7 @@ class DailyControlsTest extends TestCase
 
         $message = $response->viewData('dailyMessage');
         $this->assertStringContainsString(
-            '*T59 - PROGRAMA DE EMAGRECIMENTO EMOCIONAL - RESULTADO DO 3º DIA* 🎖',
+            '*T59 - PROGRAMA DE EMAGRECIMENTO EMOCIONAL - RESULTADO DO 2º DIA* 🎖',
             $message
         );
         $this->assertStringContainsString(
@@ -199,6 +199,21 @@ class DailyControlsTest extends TestCase
             '🏆 *RESULTADO TOTAL DO DIA = -400gr ✨🔥🔥👏👏💃🏻*',
             $message
         );
+    }
+
+    public function test_first_group_day_cannot_receive_daily_data(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+
+        $response = $this->post(route('users.updateDaily'), [
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-03',
+            'peso' => 71.4,
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseCount('user_dailies', 0);
     }
 
     public function test_scope_does_not_allow_message_dates_after_today(): void

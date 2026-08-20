@@ -30,6 +30,16 @@ const downloadButtonClasses = [
     'hover:bg-emerald-100', 'disabled:cursor-wait', 'disabled:opacity-60',
 ].join(' ');
 
+const tableExportToolbarClasses = [
+    'flex', 'min-h-14', 'items-center', 'justify-end', 'border-b',
+    'border-slate-200', 'bg-slate-50/80', 'px-4', 'py-2.5',
+].join(' ');
+
+const chartExportToolbarClasses = [
+    'mb-3', 'flex', 'min-h-14', 'items-center', 'justify-end', 'rounded-lg',
+    'border', 'border-slate-200', 'bg-slate-50/80', 'px-4', 'py-2.5',
+].join(' ');
+
 const tableTitle = (table, index) => {
     const explicitTitle = table.dataset.exportName;
     const heading = table.closest('section, form, main')
@@ -87,7 +97,7 @@ document.querySelectorAll('table').forEach((table, index) => {
         ? table.parentElement
         : table;
     const toolbar = document.createElement('div');
-    toolbar.className = 'mb-3 flex justify-end';
+    toolbar.className = tableExportToolbarClasses;
     toolbar.appendChild(button);
     scrollContainer.before(toolbar);
 });
@@ -629,7 +639,7 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
     });
 
     const toolbar = document.createElement('div');
-    toolbar.className = 'mb-3 flex justify-end';
+    toolbar.className = chartExportToolbarClasses;
     toolbar.appendChild(exportButton);
     participantChart.before(toolbar);
 });

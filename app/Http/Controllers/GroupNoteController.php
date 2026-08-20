@@ -16,7 +16,7 @@ class GroupNoteController extends Controller
     public function store(Request $request, Group $group): RedirectResponse
     {
         $data = $request->validate([
-            'date' => ['required', 'date', 'after_or_equal:'.$group->start_date->toDateString(), 'before_or_equal:'.$group->end_date->toDateString()],
+            'date' => ['required', 'date', 'after_or_equal:'.$group->effectiveStartDate()->toDateString(), 'before_or_equal:'.$group->end_date->toDateString()],
             'content' => ['required', 'string', 'max:1000'],
             'color' => ['required', Rule::in(self::COLORS)],
         ]);
