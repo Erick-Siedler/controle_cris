@@ -1,3 +1,86 @@
+import * as XLSX from 'xlsx';
+import { toPng } from 'html-to-image';
+
+const normalizeFileName = (value, fallback) => {
+    const normalized = String(value || fallback)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase();
+
+    return normalized || fallback;
+};
+
+const downloadButtonClasses = [
+    'inline-flex', 'items-center', 'justify-center', 'gap-2', 'rounded-lg',
+    'border', 'border-emerald-300', 'bg-emerald-50', 'px-3', 'py-2',
+    'text-xs', 'font-semibold', 'text-emerald-800', 'shadow-sm',
+    'hover:bg-emerald-100', 'disabled:cursor-wait', 'disabled:opacity-60',
+].join(' ');
+
+const tableTitle = (table, index) => {
+    const explicitTitle = table.dataset.exportName;
+    const heading = table.closest('section, form, main')
+        ?.querySelector('h1, h2, h3');
+    const firstHeader = table.querySelector('thead th');
+
+    return explicitTitle || heading?.textContent.trim()
+        || firstHeader?.textContent.trim() || `Tabela ${index + 1}`;
+};
+
+const exportTable = (table, title) => {
+    const exportTableClone = table.cloneNode(true);
+
+    [...table.querySelectorAll('input, select, textarea')].forEach((field, index) => {
+        const clonedField = exportTableClone.querySelectorAll('input, select, textarea')[index];
+        let value = field.value;
+
+        if (field instanceof HTMLInputElement && ['checkbox', 'radio'].includes(field.type)) {
+            value = field.checked ? 'Sim' : 'Não';
+        } else if (field instanceof HTMLSelectElement) {
+            value = field.selectedOptions[0]?.textContent.trim() || field.value;
+        }
+
+        clonedField.replaceWith(document.createTextNode(value));
+    });
+
+    exportTableClone.querySelectorAll('button').forEach((button) => {
+        button.replaceWith(document.createTextNode(button.textContent.trim()));
+    });
+
+    const worksheet = XLSX.utils.table_to_sheet(exportTableClone, { raw: true });
+    const workbook = XLSX.utils.book_new();
+    const sheetName = title.replace(/[\\/?*\[\]:]/g, ' ').trim().slice(0, 31) || 'Tabela';
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    XLSX.writeFile(workbook, `${normalizeFileName(title, 'tabela')}.xlsx`, {
+        compression: true,
+    });
+};
+
+document.querySelectorAll('table').forEach((table, index) => {
+    if (table.dataset.exportDisabled === 'true') {
+        return;
+    }
+
+    const title = tableTitle(table, index);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = downloadButtonClasses;
+    button.setAttribute('aria-label', `Exportar ${title} para Excel`);
+    button.innerHTML = '<span aria-hidden="true">↓</span> Exportar Excel';
+    button.addEventListener('click', () => exportTable(table, title));
+
+    const scrollContainer = table.parentElement?.classList.contains('overflow-x-auto')
+        ? table.parentElement
+        : table;
+    const toolbar = document.createElement('div');
+    toolbar.className = 'mb-3 flex justify-end';
+    toolbar.appendChild(button);
+    scrollContainer.before(toolbar);
+});
+
 const toggleButton = document.querySelector('[data-toggle-new-user]');
 const newUserPanel = document.querySelector('[data-new-user-panel]');
 const createUserButton = document.querySelector('[data-create-user]');
@@ -497,4 +580,45 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
             </svg>
         </div>
     `;
+
+    const exportButton = document.createElement('button');
+    const chartKind = participantChart.dataset.chartSource.includes('all-time')
+        ? 'grafico-geral'
+        : 'grafico-semanal';
+    exportButton.type = 'button';
+    exportButton.className = downloadButtonClasses;
+    exportButton.innerHTML = '<span aria-hidden="true">↓</span> Exportar PNG';
+    exportButton.setAttribute('aria-label', `Exportar ${chartKind.replaceAll('-', ' ')} como PNG`);
+    exportButton.addEventListener('click', async () => {
+        const chartElement = participantChart.firstElementChild;
+        const originalLabel = exportButton.innerHTML;
+
+        exportButton.disabled = true;
+        exportButton.textContent = 'Gerando PNG...';
+
+        try {
+            const dataUrl = await toPng(chartElement, {
+                backgroundColor: '#ffffff',
+                cacheBust: true,
+                pixelRatio: 2,
+                width: chartElement.scrollWidth,
+                height: chartElement.scrollHeight,
+            });
+            const link = document.createElement('a');
+            link.download = `${chartKind}-${normalizeFileName(chart.name, 'participante')}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error(error);
+            window.alert('Não foi possível gerar o PNG. Tente novamente.');
+        } finally {
+            exportButton.disabled = false;
+            exportButton.innerHTML = originalLabel;
+        }
+    });
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'mb-3 flex justify-end';
+    toolbar.appendChild(exportButton);
+    participantChart.before(toolbar);
 });
