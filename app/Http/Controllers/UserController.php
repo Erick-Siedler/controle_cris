@@ -290,7 +290,10 @@ class UserController extends Controller
 
         abort_unless(
             $date >= $group->start_date->toDateString()
-                && $date <= $group->end_date->toDateString(),
+                && $date <= max(
+                    now()->toDateString(),
+                    $group->end_date->toDateString()
+                ),
             422,
             'A data deve estar dentro do período do grupo.'
         );

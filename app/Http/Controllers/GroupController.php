@@ -79,7 +79,8 @@ class GroupController extends Controller
             ->get()
             ->keyBy('users_id');
         $today = now()->toDateString();
-        $messageMaxDate = min(
+        $messageMaxDate = $today;
+        $trackingEndDate = max(
             $today,
             $group->end_date->toDateString()
         );
@@ -109,7 +110,7 @@ class GroupController extends Controller
         );
         $periodDays = collect(CarbonPeriod::create(
             $group->start_date,
-            $group->end_date
+            $trackingEndDate
         ))->map(fn (Carbon $date) => [
             'date' => $date->toDateString(),
             'label' => $date->format('d/m'),
@@ -117,7 +118,7 @@ class GroupController extends Controller
         $periodDailies = UserDaily::where('groups_id', $group->id)
             ->whereIn('users_id', $userIds)
             ->whereDate('date', '>=', $group->start_date->toDateString())
-            ->whereDate('date', '<=', $group->end_date->toDateString())
+            ->whereDate('date', '<=', $trackingEndDate)
             ->whereNotNull('peso')
             ->orderBy('date')
             ->get()

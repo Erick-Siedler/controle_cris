@@ -227,6 +227,31 @@ class DailyControlsTest extends TestCase
         $this->assertSame('2026-08-15', $response->viewData('selectedDate'));
     }
 
+    public function test_current_day_remains_available_after_the_group_end_date(): void
+    {
+        [$group, $user] = $this->groupWithUser();
+        $group->update(['end_date' => '2026-08-14']);
+
+        $scopeResponse = $this->get(route('groups.scope', $group));
+        $weightResponse = $this->post(route('users.updateDaily'), [
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-15',
+            'peso' => 71.4,
+        ]);
+
+        $scopeResponse->assertOk();
+        $weightResponse->assertSessionHasNoErrors();
+        $this->assertSame('2026-08-15', $scopeResponse->viewData('selectedDate'));
+        $this->assertSame('2026-08-15', $scopeResponse->viewData('messageMaxDate'));
+        $this->assertDatabaseHas('user_dailies', [
+            'groups_id' => $group->id,
+            'users_id' => $user->id,
+            'date' => '2026-08-15 00:00:00',
+            'peso' => 71.4,
+        ]);
+    }
+
     private function groupWithUser(): array
     {
         $group = Group::create([
