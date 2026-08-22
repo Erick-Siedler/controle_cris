@@ -214,6 +214,19 @@ class DailyControlsTest extends TestCase
         $this->assertSame('2026-08-15', $response->viewData('messageMaxDate'));
     }
 
+    public function test_scope_uses_the_current_date_in_sao_paulo(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-16 02:30:00 UTC'));
+        [$group] = $this->groupWithUser();
+
+        $response = $this->get(route('groups.scope', $group));
+
+        $response->assertOk();
+        $this->assertSame('America/Sao_Paulo', config('app.timezone'));
+        $this->assertSame('2026-08-15', $response->viewData('today'));
+        $this->assertSame('2026-08-15', $response->viewData('selectedDate'));
+    }
+
     private function groupWithUser(): array
     {
         $group = Group::create([
