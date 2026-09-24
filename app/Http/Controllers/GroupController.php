@@ -34,13 +34,14 @@ class GroupController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateGroup($request);
+        $durationWeeks = (int) $data['duration_weeks'];
 
-        $group = DB::transaction(function () use ($data) {
+        $group = DB::transaction(function () use ($data, $durationWeeks) {
             $group = Group::create([
                 'name' => $data['name'],
                 'start_date' => $data['start_date'],
                 'end_date' => Carbon::parse($data['start_date'])
-                    ->addWeeks($data['duration_weeks'])
+                    ->addWeeks($durationWeeks)
                     ->subDay(),
             ]);
 
@@ -343,14 +344,14 @@ class GroupController extends Controller
         ], [], [
             'additional_weeks' => 'semanas adicionais',
         ]);
+        $weeks = (int) $data['additional_weeks'];
 
         $group->update([
             'end_date' => $group->end_date
                 ->copy()
-                ->addWeeks($data['additional_weeks']),
+                ->addWeeks($weeks),
         ]);
 
-        $weeks = $data['additional_weeks'];
         $label = $weeks === 1 ? 'semana' : 'semanas';
 
         return redirect()

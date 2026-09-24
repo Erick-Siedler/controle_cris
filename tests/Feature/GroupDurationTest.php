@@ -18,7 +18,8 @@ class GroupDurationTest extends TestCase
         $response = $this->post(route('groups.store'), [
             'name' => 'Projeto de seis semanas',
             'start_date' => '2026-08-03',
-            'duration_weeks' => 6,
+            // Campos numéricos de formulários HTML chegam como strings.
+            'duration_weeks' => '6',
             'users' => [$user->id],
         ]);
 
@@ -51,7 +52,8 @@ class GroupDurationTest extends TestCase
         $group = $this->group();
 
         $response = $this->patch(route('groups.extend', $group), [
-            'additional_weeks' => 2,
+            // Campos numéricos de formulários HTML chegam como strings.
+            'additional_weeks' => '2',
         ]);
 
         $response->assertRedirect(route('groups.show', $group));
