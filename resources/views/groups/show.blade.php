@@ -39,6 +39,41 @@
         </div>
     @endif
 
+    <section class="mb-8 rounded-xl border border-purple-200 bg-purple-50 p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wider text-purple-700">Duração do grupo</p>
+                <h2 class="mt-1 text-xl font-semibold">
+                    {{ $group->durationInWeeks() }} {{ $group->durationInWeeks() === 1 ? 'semana' : 'semanas' }}
+                </h2>
+                <p class="mt-1 text-sm text-slate-600">
+                    Término atual: {{ $group->end_date->format('d/m/Y') }}. A prorrogação é somada a essa data.
+                </p>
+            </div>
+
+            <form method="POST" action="{{ route('groups.extend', $group) }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                @csrf
+                @method('PATCH')
+                <label>
+                    <span class="mb-2 block text-sm font-medium text-slate-700">Semanas adicionais</span>
+                    <input
+                        type="number"
+                        name="additional_weeks"
+                        value="{{ old('additional_weeks', 1) }}"
+                        min="1"
+                        max="52"
+                        step="1"
+                        required
+                        class="w-full rounded-lg border border-purple-200 bg-white px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 sm:w-44"
+                    >
+                </label>
+                <button class="rounded-lg bg-purple-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">
+                    Prorrogar grupo
+                </button>
+            </form>
+        </div>
+    </section>
+
     <section>
         <div class="mb-4">
             <h2 class="text-xl font-semibold">Adicionais dos usuários</h2>

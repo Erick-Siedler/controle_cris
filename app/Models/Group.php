@@ -18,6 +18,16 @@ class Group extends Model
         ];
     }
 
+    public function durationInWeeks(): int
+    {
+        return max(
+            1,
+            (int) ceil(
+                ($this->start_date->diffInDays($this->end_date) + 1) / 7
+            )
+        );
+    }
+
     public function user_groups()
     {
         return $this->hasMany(UserGroup::class, 'groups_id');

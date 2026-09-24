@@ -40,7 +40,8 @@ class GroupController extends Controller
                 'name' => $data['name'],
                 'start_date' => $data['start_date'],
                 'end_date' => Carbon::parse($data['start_date'])
-                    ->addDays(27),
+                    ->addWeeks($data['duration_weeks'])
+                    ->subDay(),
             ]);
 
             $this->syncUsers($group, $data['users']);
@@ -316,13 +317,15 @@ class GroupController extends Controller
     public function update(Request $request, Group $group)
     {
         $data = $this->validateGroup($request);
+        $durationInDays = $group->start_date
+            ->diffInDays($group->end_date) + 1;
 
-        DB::transaction(function () use ($group, $data) {
+        DB::transaction(function () use ($group, $data, $durationInDays) {
             $group->update([
                 'name' => $data['name'],
                 'start_date' => $data['start_date'],
                 'end_date' => Carbon::parse($data['start_date'])
-                    ->addDays(27),
+                    ->addDays($durationInDays - 1),
             ]);
 
             $this->syncUsers($group, $data['users']);
@@ -331,6 +334,32 @@ class GroupController extends Controller
         return redirect()
             ->route('groups.index')
             ->with('success', 'Grupo atualizado com sucesso.');
+    }
+
+    public function extend(Request $request, Group $group)
+    {
+        $data = $request->validate([
+            'additional_weeks' => ['required', 'integer', 'min:1', 'max:52'],
+        ], [], [
+            'additional_weeks' => 'semanas adicionais',
+        ]);
+
+        $group->update([
+            'end_date' => $group->end_date
+                ->copy()
+                ->addWeeks($data['additional_weeks']),
+        ]);
+
+        $weeks = $data['additional_weeks'];
+        $label = $weeks === 1 ? 'semana' : 'semanas';
+
+        return redirect()
+            ->route('groups.show', $group)
+            ->with(
+                'success',
+                "Grupo prorrogado por {$weeks} {$label}. "
+                    .'Novo término: '.$group->fresh()->end_date->format('d/m/Y').'.'
+            );
     }
 
     public function destroy(Group $group)
@@ -344,11 +373,24 @@ class GroupController extends Controller
 
     private function validateGroup(Request $request): array
     {
-        return $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'start_date' => ['required', 'date'],
             'users' => ['required', 'array', 'min:1'],
             'users.*' => ['integer', 'distinct', 'exists:users,id'],
+        ];
+
+        if ($request->isMethod('post')) {
+            $rules['duration_weeks'] = [
+                'required',
+                'integer',
+                'min:1',
+                'max:52',
+            ];
+        }
+
+        return $request->validate($rules, [], [
+            'duration_weeks' => 'duração em semanas',
         ]);
     }
 

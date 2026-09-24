@@ -21,6 +21,8 @@ Route::get(
     'groups/{group}/users/{user}',
     [GroupController::class, 'participant']
 )->name('groups.participants.show');
+Route::patch('groups/{group}/extend', [GroupController::class, 'extend'])
+    ->name('groups.extend');
 Route::resource('groups', GroupController::class);
 Route::resource('users', UserController::class);
 Route::post('users/storeByGroup', [UserController::class, 'storeByGroup'])->name('users.storeByGroup');

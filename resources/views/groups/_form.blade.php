@@ -10,7 +10,7 @@
 
     <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold">Dados do grupo</h2>
-        <div class="mt-5 grid gap-5 md:grid-cols-2">
+        <div class="mt-5 grid gap-5 {{ isset($group) ? 'md:grid-cols-2' : 'md:grid-cols-3' }}">
             <label>
                 <span class="mb-2 block text-sm font-medium text-slate-700">Nome</span>
                 <input type="text" name="name" value="{{ old('name', $group->name ?? '') }}" required minlength="3" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
@@ -20,8 +20,18 @@
                 <span class="mb-2 block text-sm font-medium text-slate-700">Data de início</span>
                 <input type="date" name="start_date" value="{{ old('start_date', isset($group) ? $group->start_date->format('Y-m-d') : '') }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                 @error('start_date') <small class="mt-1 block text-red-600">{{ $message }}</small> @enderror
-                <small class="mt-1 block text-slate-500">O grupo terminará automaticamente quatro semanas após esta data.</small>
+                @if (isset($group))
+                    <small class="mt-1 block text-slate-500">A duração atual será preservada ao alterar esta data.</small>
+                @endif
             </label>
+            @if (!isset($group))
+                <label>
+                    <span class="mb-2 block text-sm font-medium text-slate-700">Duração (semanas)</span>
+                    <input type="number" name="duration_weeks" value="{{ old('duration_weeks', 4) }}" min="1" max="52" step="1" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+                    @error('duration_weeks') <small class="mt-1 block text-red-600">{{ $message }}</small> @enderror
+                    <small class="mt-1 block text-slate-500">Escolha entre 1 e 52 semanas. O padrão é 4.</small>
+                </label>
+            @endif
         </div>
     </div>
 
