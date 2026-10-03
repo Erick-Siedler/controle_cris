@@ -23,6 +23,17 @@ const normalizeFileName = (value, fallback) => {
     return normalized || fallback;
 };
 
+const roundWeight = (value) => {
+    const rounded = Math.sign(Number(value))
+        * Math.round((Math.abs(Number(value)) + Number.EPSILON) * 10) / 10;
+    return rounded === 0 ? 0 : rounded;
+};
+
+const formatWeight = (value) => roundWeight(value).toLocaleString('pt-BR', {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+});
+
 const downloadButtonClasses = [
     'inline-flex', 'items-center', 'justify-center', 'gap-2', 'rounded-lg',
     'border', 'border-emerald-300', 'bg-emerald-50', 'px-3', 'py-2',
@@ -199,8 +210,20 @@ document.querySelectorAll('dialog').forEach((dialog) => {
     }
 
     const history = JSON.parse(historySource.textContent);
+    const formatInputWeight = (value) => value == null || value === ''
+        ? ''
+        : formatWeight(value);
     dateInput.addEventListener('change', () => {
-        weightInput.value = history[dateInput.value] ?? '';
+        weightInput.value = formatInputWeight(history[dateInput.value]);
+    });
+    weightInput.addEventListener('input', () => {
+        const cleaned = weightInput.value.replace(/[^\d,.]/g, '').replace('.', ',');
+        const [whole, fractional] = cleaned.split(',');
+        weightInput.value = whole.slice(0, 3)
+            + (cleaned.includes(',') ? `,${(fractional || '').slice(0, 1)}` : '');
+    });
+    weightInput.form?.addEventListener('submit', () => {
+        weightInput.value = weightInput.value.replace(',', '.');
     });
 });
 
@@ -512,8 +535,7 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
     const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;',
     })[character]);
-    const formatWeight = (value) => Number(value).toFixed(1).replace('.', ',');
-    const formatSigned = (value) => `${Number(value) > 0 ? '+' : ''}${formatWeight(value)}`;
+    const formatSigned = (value) => `${roundWeight(value) > 0 ? '+' : ''}${formatWeight(value)}`;
     const weightValues = chart.days
         .map((day) => day.weight)
         .filter((value) => value !== null)
@@ -529,9 +551,9 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
         return;
     }
 
-    const width = Math.max(1040, chart.days.length * 105 + 100);
-    const height = 430;
-    const padding = { top: 38, right: 34, bottom: 78, left: 58 };
+    const width = Math.max(760, chart.days.length * 86 + 80);
+    const height = 390;
+    const padding = { top: 32, right: 30, bottom: 70, left: 54 };
     const minimum = Math.floor((Math.min(...scaleValues) - 5) / 2) * 2;
     const maximum = Math.ceil((Math.max(...scaleValues) + 1) / 2) * 2;
     const plotWidth = width - padding.left - padding.right;
@@ -572,6 +594,10 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
         </g>
     `).join('');
     const latestWeight = weightValues.at(-1);
+    const lastDate = chart.days.at(-1)?.date;
+    const elapsedDays = lastDate && chart.startDate
+        ? Math.max(1, Math.round((Date.parse(`${lastDate}T12:00:00Z`) - Date.parse(`${chart.startDate}T12:00:00Z`)) / 86400000) + 1)
+        : weightValues.length;
     const baselineWeight = chart.initial === null ? weightValues[0] : Number(chart.initial);
     const totalChange = latestWeight === undefined ? null : latestWeight - baselineWeight;
     const remaining = latestWeight === undefined || chart.goal === null
@@ -580,20 +606,24 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
 
     participantChart.innerHTML = `
         <div class="border border-fuchsia-700 bg-white" style="min-width: ${width}px; width: 100%;">
-            <div class="grid h-28 grid-cols-[90px_minmax(300px,1fr)_auto] items-center gap-5 px-3">
-                <img src="${escapeHtml(chart.logo)}" alt="" class="h-20 w-20 object-contain">
-                <div class="flex min-w-0 items-center gap-10">
-                    <strong class="bg-fuchsia-800 px-2 py-1 text-lg text-white">${escapeHtml(chart.program)}</strong>
-                    <h2 class="truncate text-xl font-bold text-black">${escapeHtml(chart.name)}</h2>
+            <div class="grid min-h-24 grid-cols-[72px_minmax(180px,1fr)_auto] items-center gap-3 px-3 py-2">
+                <img src="${escapeHtml(chart.logo)}" alt="" class="h-16 w-16 object-contain">
+                <div class="flex min-w-0 flex-wrap items-center gap-3">
+                    <strong class="bg-fuchsia-800 px-2 py-1 text-sm text-white">${escapeHtml(chart.program)}</strong>
+                    <h2 class="truncate text-lg font-bold text-black">${escapeHtml(chart.name)}</h2>
                 </div>
-                <div class="grid grid-cols-[auto_auto_auto_auto] items-center gap-x-3 gap-y-1 pr-8 text-base text-black">
-                    <span class="text-right">TOTAL ELIMINADO:</span>
-                    <strong class="rounded bg-fuchsia-800 px-3 py-1 text-center text-lg text-white">${totalChange === null ? '—' : formatSigned(totalChange)}</strong>
-                    <span>EM</span>
-                    <strong class="text-xl">${weightValues.length} <span class="ml-2 text-base font-normal">DIAS</span></strong>
-                    <span class="text-right">FALTAM:</span>
-                    <strong class="rounded border border-black bg-orange-600 px-3 py-1 text-center text-lg text-white">${remaining === null ? '—' : formatSigned(remaining)}</strong>
-                    <strong class="col-span-2 max-w-56 text-sm leading-tight">Para alcançar a meta do seu emagrecimento!</strong>
+                <div class="flex flex-col items-end gap-1 text-sm text-black">
+                    <div class="flex items-center justify-end gap-2">
+                        <span>TOTAL ELIMINADO:</span>
+                        <strong class="rounded bg-fuchsia-800 px-2 py-1 text-center text-white">${totalChange === null ? '—' : formatSigned(totalChange)}</strong>
+                        <span>EM</span>
+                        <strong>${elapsedDays} <span class="font-normal">DIAS</span></strong>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <span>FALTAM:</span>
+                        <strong class="rounded border border-black bg-orange-600 px-2 py-1 text-center text-white">${remaining === null ? '—' : formatSigned(remaining)}</strong>
+                        <span class="max-w-40 text-xs leading-tight">Para alcançar a meta do seu emagrecimento!</span>
+                    </div>
                 </div>
             </div>
             <svg viewBox="0 0 ${width} ${height}" class="block w-full" role="img" aria-label="Progresso de ${escapeHtml(chart.name)}">

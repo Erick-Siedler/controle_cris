@@ -188,7 +188,7 @@ class DailyControlsTest extends TestCase
 
         $message = $response->viewData('dailyMessage');
         $this->assertStringContainsString(
-            '*T59 - PROGRAMA DE EMAGRECIMENTO EMOCIONAL - RESULTADO DO 2º DIA* 🎖',
+            '*PROGRAMA DE EMAGRECIMENTO EMOCIONAL 💎 T59 - RESULTADO DO 2º DIA* 🎖',
             $message
         );
         $this->assertStringContainsString(

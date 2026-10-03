@@ -68,15 +68,15 @@
     <div class="mb-6 grid gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <span class="text-xs text-slate-500">Peso inicial</span>
-            <strong class="mt-1 block text-xl">{{ $initialWeight !== null ? number_format($initialWeight, 2, ',', '.') . ' kg' : '—' }}</strong>
+            <strong class="mt-1 block text-xl">{{ $initialWeight !== null ? \App\Support\WeightFormatter::display($initialWeight) . ' kg' : '—' }}</strong>
         </div>
         <div class="rounded-xl border border-purple-200 bg-purple-50 p-4 shadow-sm">
             <span class="text-xs text-purple-700">Total eliminado</span>
-            <strong class="mt-1 block text-xl text-purple-900">{{ $eliminated !== null ? number_format($eliminated, 2, ',', '.') . ' kg' : '—' }}</strong>
+            <strong class="mt-1 block text-xl text-purple-900">{{ $eliminated !== null ? \App\Support\WeightFormatter::display($eliminated) . ' kg' : '—' }}</strong>
         </div>
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
             <span class="text-xs text-blue-700">Faltam para a meta</span>
-            <strong class="mt-1 block text-xl text-blue-900">{{ $remaining !== null ? number_format($remaining, 2, ',', '.') . ' kg' : '—' }}</strong>
+            <strong class="mt-1 block text-xl text-blue-900">{{ $remaining !== null ? \App\Support\WeightFormatter::display($remaining) . ' kg' : '—' }}</strong>
         </div>
     </div>
 
@@ -158,6 +158,7 @@
         'logo' => asset('images/programa-emagrecimento-emocional.png'),
         'initial' => $initialWeight,
         'goal' => $goalWeight,
+        'startDate' => $group->start_date->toDateString(),
         'days' => $chartDays->map(fn ($day) => [
             'date' => $day['date'],
             'label' => $day['label'],
@@ -171,6 +172,7 @@
         'logo' => asset('images/programa-emagrecimento-emocional.png'),
         'initial' => $initialWeight,
         'goal' => $goalWeight,
+        'startDate' => $group->start_date->toDateString(),
         'days' => $allTimeDays->map(fn ($day) => [
             'date' => $day['date'],
             'label' => $day['label'],

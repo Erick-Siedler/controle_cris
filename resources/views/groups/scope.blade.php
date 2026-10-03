@@ -137,17 +137,17 @@
                                 </button>
                             </td>
                             <td class="sticky left-48 z-20 border-r border-slate-200 bg-white px-4 py-3 text-center text-slate-700">
-                                {{ $additional ? number_format($additional->peso_inicial, 2, ',', '.') : '—' }}
+                                {{ $additional ? \App\Support\WeightFormatter::display($additional->peso_inicial) : '—' }}
                             </td>
                             <td class="sticky left-[19rem] z-20 border-r border-slate-200 bg-white px-4 py-3 text-center font-medium text-slate-700 shadow-[8px_0_12px_-10px_rgba(15,23,42,0.4)]">
-                                {{ $additional ? number_format($additional->meta_peso, 2, ',', '.') : '—' }}
+                                {{ $additional ? \App\Support\WeightFormatter::display($additional->meta_peso) : '—' }}
                             </td>
                             @foreach ($historyDays as $day)
                                 @php
                                     $dayDaily = $userPeriodDailies->get($day['date']);
                                 @endphp
                                 <td class="px-4 py-3 text-center font-semibold {{ $dayDaily ? 'text-purple-800' : 'text-slate-300' }}">
-                                    {{ $dayDaily ? number_format($dayDaily->peso, 2, ',', '.') : '' }}
+                                    {{ $dayDaily?->peso !== null ? \App\Support\WeightFormatter::display($dayDaily->peso) : '' }}
                                 </td>
                             @endforeach
                             <td class="sticky right-0 z-10 border-l border-slate-200 bg-white px-4 py-3 text-center shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.4)]">
@@ -425,7 +425,7 @@
                                     <td class="sticky left-0 z-10 border border-slate-300 bg-white px-3 py-2 font-medium">{{ $row['name'] }}</td>
                                     @foreach ($row['accumulated'] as $value)
                                         <td class="border border-slate-300 px-3 py-2 text-center {{ $value !== null && $value < 0 ? 'text-emerald-700' : ($value !== null && $value > 0 ? 'text-red-600' : '') }}">
-                                            {{ $value !== null ? number_format($value, 2, ',', '.') : '' }}
+                                            {{ $value !== null ? \App\Support\WeightFormatter::display($value) : '' }}
                                         </td>
                                     @endforeach
                                 </tr>
@@ -469,7 +469,7 @@
                                     <td class="sticky left-0 z-10 border border-slate-300 bg-white px-3 py-2 font-medium">{{ $row['name'] }}</td>
                                     @foreach ($row['daily'] as $value)
                                         <td class="border border-slate-300 px-3 py-2 text-center {{ $value !== null && $value > 0 ? 'text-emerald-700' : ($value !== null && $value < 0 ? 'text-red-600' : '') }}">
-                                            {{ $value !== null ? number_format($value, 2, ',', '.') : '' }}
+                                            {{ $value !== null ? \App\Support\WeightFormatter::display($value) : '' }}
                                         </td>
                                     @endforeach
                                 </tr>
@@ -542,13 +542,12 @@
                 <label class="mt-4 block">
                     <span class="mb-2 block text-sm font-medium text-slate-700">Peso do dia (kg)</span>
                     <input
-                        type="number"
+                        type="text"
+                        inputmode="decimal"
                         name="peso"
-                        value="{{ $daily?->peso }}"
-                        min="1"
-                        max="500"
-                        step="0.01"
-                        placeholder="Ex.: 72,50"
+                        value="{{ $daily?->peso !== null ? \App\Support\WeightFormatter::display($daily->peso) : '' }}"
+                        pattern="[0-9]{1,3}([,.][0-9])?"
+                        placeholder="Ex.: 72,5"
                         data-weight-value
                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                     >

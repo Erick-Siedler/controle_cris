@@ -445,9 +445,9 @@ class GroupController extends Controller
                 continue;
             }
 
-            $dayChange = round($selectedWeight - $previousWeight, 3);
+            $dayChange = round($selectedWeight - $previousWeight, 1);
             $accumulated = $initialWeight !== null
-                ? round($selectedWeight - $initialWeight, 3)
+                ? round($selectedWeight - $initialWeight, 1)
                 : null;
             $line = '▪ '.$userGroup->user->name
                 .' = *'.$this->formatMessageWeight($dayChange).'*'
@@ -475,8 +475,7 @@ class GroupController extends Controller
             $group->start_date->diffInDays(Carbon::parse($messageDate), false)
         );
         $lines = [
-            '*'.mb_strtoupper($group->name)
-                .' - PROGRAMA DE EMAGRECIMENTO EMOCIONAL'
+            '*PROGRAMA DE EMAGRECIMENTO EMOCIONAL 💎 '.mb_strtoupper($group->name)
                 .' - RESULTADO DO '.$groupDay.'º DIA* 🎖',
             '',
             '✅ *Eliminou:*',
@@ -505,8 +504,9 @@ class GroupController extends Controller
 
     private function formatMessageWeight(float $weight): string
     {
-        $sign = $weight > 0 ? '+' : ($weight < 0 ? '-' : '');
-        $absolute = abs($weight);
+        $rounded = round($weight, 1);
+        $sign = $rounded > 0 ? '+' : ($rounded < 0 ? '-' : '');
+        $absolute = abs($rounded);
 
         if ($absolute < 1) {
             return $sign.number_format(
@@ -517,8 +517,6 @@ class GroupController extends Controller
             ).'gr';
         }
 
-        $decimals = abs($absolute - round($absolute)) < 0.0001 ? 0 : 1;
-
-        return $sign.number_format($absolute, $decimals, ',', '.').'Kg';
+        return $sign.\App\Support\WeightFormatter::display($absolute).'Kg';
     }
 }
