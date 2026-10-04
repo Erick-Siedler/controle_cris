@@ -474,8 +474,9 @@ class GroupController extends Controller
             1,
             $group->start_date->diffInDays(Carbon::parse($messageDate), false)
         );
+        $messageGroupName = trim(preg_replace('/\s*💎\s*/u', ' ', $group->name));
         $lines = [
-            '*PROGRAMA DE EMAGRECIMENTO EMOCIONAL 💎 '.mb_strtoupper($group->name)
+            '*PROGRAMA DE EMAGRECIMENTO EMOCIONAL 💎 '.mb_strtoupper($messageGroupName)
                 .' - RESULTADO DO '.$groupDay.'º DIA* 🎖',
             '',
             '✅ *Eliminou:*',

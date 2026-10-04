@@ -201,6 +201,22 @@ class DailyControlsTest extends TestCase
         );
     }
 
+    public function test_daily_message_has_one_diamond_when_group_name_contains_it(): void
+    {
+        [$group] = $this->groupWithUser();
+        $group->update(['name' => '💎 T59 💎']);
+
+        $response = $this->get(route('groups.scope', $group));
+
+        $response->assertOk();
+        $message = $response->viewData('dailyMessage');
+        $this->assertStringStartsWith(
+            '*PROGRAMA DE EMAGRECIMENTO EMOCIONAL 💎 T59 - RESULTADO',
+            $message
+        );
+        $this->assertSame(1, substr_count($message, '💎'));
+    }
+
     public function test_scope_does_not_allow_message_dates_after_today(): void
     {
         [$group] = $this->groupWithUser();
