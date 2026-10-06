@@ -546,8 +546,8 @@
                         inputmode="decimal"
                         name="peso"
                         value="{{ $daily?->peso !== null ? \App\Support\WeightFormatter::display($daily->peso) : '' }}"
-                        pattern="[0-9]{1,3}([,.][0-9])?"
-                        placeholder="Ex.: 72,5"
+                        pattern="[0-9]{1,3}([,.][0-9]{1,2})?"
+                        placeholder="Ex.: 72,55"
                         data-weight-value
                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                     >

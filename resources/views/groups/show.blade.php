@@ -120,7 +120,7 @@
                                         value="{{ old("additionals.{$userGroup->users_id}.peso_inicial") }}"
                                         min="1"
                                         max="500"
-                                        step="0.1"
+                                        step="0.01"
                                         required
                                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                                     >
@@ -133,7 +133,7 @@
                                         value="{{ old("additionals.{$userGroup->users_id}.meta_peso") }}"
                                         min="1"
                                         max="500"
-                                        step="0.1"
+                                        step="0.01"
                                         required
                                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                                     >
@@ -188,11 +188,11 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <label>
                                     <span class="mb-2 block text-sm font-medium text-slate-700">Peso atual (kg)</span>
-                                    <input type="number" name="peso_inicial" value="{{ round($additional->peso_inicial, 1) }}" min="1" max="500" step="0.1" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+                                    <input type="number" name="peso_inicial" value="{{ round($additional->peso_inicial, 2) }}" min="1" max="500" step="0.01" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                                 </label>
                                 <label>
                                     <span class="mb-2 block text-sm font-medium text-slate-700">Meta de peso (kg)</span>
-                                    <input type="number" name="meta_peso" value="{{ round($additional->meta_peso, 1) }}" min="1" max="500" step="0.1" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
+                                    <input type="number" name="meta_peso" value="{{ round($additional->meta_peso, 2) }}" min="1" max="500" step="0.01" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-purple-500 focus:ring-2 focus:ring-purple-100">
                                 </label>
                             </div>
 

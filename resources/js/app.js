@@ -25,12 +25,12 @@ const normalizeFileName = (value, fallback) => {
 
 const roundWeight = (value) => {
     const rounded = Math.sign(Number(value))
-        * Math.round((Math.abs(Number(value)) + Number.EPSILON) * 10) / 10;
+        * Math.round((Math.abs(Number(value)) + Number.EPSILON) * 100) / 100;
     return rounded === 0 ? 0 : rounded;
 };
 
 const formatWeight = (value) => roundWeight(value).toLocaleString('pt-BR', {
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 2,
     minimumFractionDigits: 0,
 });
 
@@ -220,7 +220,7 @@ document.querySelectorAll('dialog').forEach((dialog) => {
         const cleaned = weightInput.value.replace(/[^\d,.]/g, '').replace('.', ',');
         const [whole, fractional] = cleaned.split(',');
         weightInput.value = whole.slice(0, 3)
-            + (cleaned.includes(',') ? `,${(fractional || '').slice(0, 1)}` : '');
+            + (cleaned.includes(',') ? `,${(fractional || '').slice(0, 2)}` : '');
     });
     weightInput.form?.addEventListener('submit', () => {
         weightInput.value = weightInput.value.replace(',', '.');

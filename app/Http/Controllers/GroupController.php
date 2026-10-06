@@ -445,9 +445,9 @@ class GroupController extends Controller
                 continue;
             }
 
-            $dayChange = round($selectedWeight - $previousWeight, 1);
+            $dayChange = round($selectedWeight - $previousWeight, 2);
             $accumulated = $initialWeight !== null
-                ? round($selectedWeight - $initialWeight, 1)
+                ? round($selectedWeight - $initialWeight, 2)
                 : null;
             $line = '▪ '.$userGroup->user->name
                 .' = *'.$this->formatMessageWeight($dayChange).'*'
@@ -505,7 +505,7 @@ class GroupController extends Controller
 
     private function formatMessageWeight(float $weight): string
     {
-        $rounded = round($weight, 1);
+        $rounded = round($weight, 2);
         $sign = $rounded > 0 ? '+' : ($rounded < 0 ? '-' : '');
         $absolute = abs($rounded);
 
