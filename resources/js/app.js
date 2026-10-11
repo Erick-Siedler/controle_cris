@@ -1,5 +1,10 @@
 import * as XLSX from 'xlsx';
 import { toPng } from 'html-to-image';
+import { celebrateGoal } from './goal-confetti';
+
+if (document.querySelector('[data-goal-celebration]')) {
+    celebrateGoal();
+}
 
 document.querySelector('[data-system-update-form]')?.addEventListener('submit', (event) => {
     if (!window.confirm('Buscar e instalar a versão mais recente do sistema agora?')) {
@@ -603,9 +608,11 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
     const remaining = latestWeight === undefined || chart.goal === null
         ? null
         : Number(chart.goal) - latestWeight;
+    const goalReached = latestWeight !== undefined && chart.goal !== null
+        && roundWeight(latestWeight) <= roundWeight(chart.goal);
 
     participantChart.innerHTML = `
-        <div class="border border-fuchsia-700 bg-white" style="min-width: ${width}px; width: 100%;">
+        <div class="border-[3px] border-fuchsia-700 bg-white" style="box-sizing: border-box; min-width: ${width}px; width: 100%;">
             <div class="grid min-h-24 grid-cols-[72px_minmax(180px,1fr)_auto] items-center gap-3 px-3 py-2">
                 <img src="${escapeHtml(chart.logo)}" alt="" class="h-16 w-16 object-contain">
                 <div class="flex min-w-0 flex-wrap items-center gap-3">
@@ -620,9 +627,13 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
                         <strong>${elapsedDays} <span class="font-normal">DIAS</span></strong>
                     </div>
                     <div class="flex items-center justify-end gap-2">
+                        ${goalReached ? `
+                        <span>EM MANUTENÇÃO</span>
+                        ` : `
                         <span>FALTAM:</span>
                         <strong class="rounded border border-black bg-orange-600 px-2 py-1 text-center text-white">${remaining === null ? '—' : formatSigned(remaining)}</strong>
                         <span class="max-w-40 text-xs leading-tight">Para alcançar a meta do seu emagrecimento!</span>
+                        `}
                     </div>
                 </div>
             </div>
@@ -648,12 +659,18 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
         exportButton.textContent = 'Gerando PNG...';
 
         try {
+            const bounds = chartElement.getBoundingClientRect();
+            const style = getComputedStyle(chartElement);
+            const exportWidth = Math.ceil(Math.max(bounds.width, chartElement.scrollWidth
+                + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth)));
+            const exportHeight = Math.ceil(Math.max(bounds.height, chartElement.scrollHeight
+                + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth)));
             const dataUrl = await toPng(chartElement, {
                 backgroundColor: '#ffffff',
                 cacheBust: true,
                 pixelRatio: 2,
-                width: chartElement.scrollWidth,
-                height: chartElement.scrollHeight,
+                width: exportWidth,
+                height: exportHeight,
             });
             const link = document.createElement('a');
             link.download = `${chartKind}-${normalizeFileName(chart.name, 'participante')}.png`;

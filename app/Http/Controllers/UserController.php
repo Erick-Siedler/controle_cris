@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserAdditionals;
 use App\Models\UserDaily;
 use App\Models\UserGroup;
+use App\Support\WeightGoal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -200,6 +201,16 @@ class UserController extends Controller
         );
         $this->ensureDateBelongsToGroup($data['date'], $data['groups_id']);
 
+        $goal = UserAdditionals::where('users_id', $data['users_id'])
+            ->where('groups_id', $data['groups_id'])
+            ->value('meta_peso');
+        $previousWeight = UserDaily::where('users_id', $data['users_id'])
+            ->where('groups_id', $data['groups_id'])
+            ->whereDate('date', $data['date'])
+            ->value('peso');
+        $celebrate = WeightGoal::reached($data['peso'], $goal)
+            && ! WeightGoal::reached($previousWeight, $goal);
+
         $this->saveDaily(
             [
                 'users_id' => $data['users_id'],
@@ -209,7 +220,13 @@ class UserController extends Controller
             ['peso' => $data['peso']]
         );
 
-        return back()->with('success', 'Peso do dia salvo com sucesso.');
+        $response = back()->with('success', 'Peso do dia salvo com sucesso.');
+
+        if ($celebrate) {
+            $response->with('goal_reached', 'Meta alcançada! Você está em manutenção.');
+        }
+
+        return $response;
     }
 
     public function updateDailyChecks(Request $request)

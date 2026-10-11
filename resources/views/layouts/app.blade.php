@@ -17,6 +17,12 @@
     </header>
 
     <main class="mx-auto @yield('main-width', 'max-w-7xl') px-4 py-8 sm:px-6 lg:px-8">
+        @if (session('goal_reached'))
+            <div data-goal-celebration role="status" class="mb-6 rounded-lg border border-emerald-300 bg-emerald-100 px-4 py-3 font-semibold text-emerald-900">
+                🎉 {{ session('goal_reached') }}
+            </div>
+        @endif
+
         @if (session('success'))
             <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                 {{ session('success') }}

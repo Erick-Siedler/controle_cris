@@ -6,6 +6,7 @@
     @php
         $initialWeight = $additional?->peso_inicial;
         $goalWeight = $additional?->meta_peso;
+        $goalReached = \App\Support\WeightGoal::reached($latestWeight, $goalWeight);
         $eliminated = $initialWeight !== null && $latestWeight !== null
             ? $initialWeight - $latestWeight
             : null;
@@ -75,8 +76,8 @@
             <strong class="mt-1 block text-xl text-purple-900">{{ $eliminated !== null ? \App\Support\WeightFormatter::display($eliminated) . ' kg' : '—' }}</strong>
         </div>
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
-            <span class="text-xs text-blue-700">Faltam para a meta</span>
-            <strong class="mt-1 block text-xl text-blue-900">{{ $remaining !== null ? \App\Support\WeightFormatter::display($remaining) . ' kg' : '—' }}</strong>
+            <span class="text-xs text-blue-700">{{ $goalReached ? 'Meta alcançada' : 'Faltam para a meta' }}</span>
+            <strong class="mt-1 block text-xl text-blue-900">{{ $goalReached ? 'Em manutenção' : ($remaining !== null ? \App\Support\WeightFormatter::display($remaining) . ' kg' : '—') }}</strong>
         </div>
     </div>
 
