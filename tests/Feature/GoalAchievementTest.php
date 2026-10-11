@@ -55,19 +55,19 @@ class GoalAchievementTest extends TestCase
         if ($reached) {
             $response->assertSessionHas('goal_reached');
             $this->get($scope)->assertSee('data-goal-celebration', false)
-                ->assertSee('title="Meta alcançada · Em manutenção"', false);
+                ->assertSee('title="Chegou no topo! Se mantendo na margem!"', false);
             $this->get($scope)->assertDontSee('data-goal-celebration', false);
         } else {
             $response->assertSessionMissing('goal_reached');
-            $this->get($scope)->assertDontSee('title="Meta alcançada · Em manutenção"', false);
+            $this->get($scope)->assertDontSee('title="Chegou no topo! Se mantendo na margem!"', false);
         }
 
         $participant = $this->get(route('groups.participants.show', [$group, $user]));
         $participant->assertOk();
         if ($reached) {
-            $participant->assertSee('Em manutenção')->assertDontSee('Faltam para a meta');
+            $participant->assertSee('Chegou no topo! Se mantendo na margem!')->assertDontSee('Faltam para a meta');
         } else {
-            $participant->assertSee('Faltam para a meta')->assertDontSee('Em manutenção');
+            $participant->assertSee('Faltam para a meta')->assertDontSee('Chegou no topo! Se mantendo na margem!');
         }
     }
 
@@ -121,7 +121,7 @@ class GoalAchievementTest extends TestCase
 
         $this->get(route('groups.participants.show', [$group, $user]))
             ->assertSee('Faltam para a meta')->assertSee('0,1 kg')
-            ->assertDontSee('Em manutenção');
+            ->assertDontSee('Chegou no topo! Se mantendo na margem!');
     }
 
     private function participant(?float $goal): array

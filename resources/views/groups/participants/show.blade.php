@@ -77,7 +77,7 @@
         </div>
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
             <span class="text-xs text-blue-700">{{ $goalReached ? 'Meta alcançada' : 'Faltam para a meta' }}</span>
-            <strong class="mt-1 block text-xl text-blue-900">{{ $goalReached ? 'Em manutenção' : ($remaining !== null ? \App\Support\WeightFormatter::display($remaining) . ' kg' : '—') }}</strong>
+            <strong class="mt-1 block text-xl text-blue-900">{{ $goalReached ? 'Chegou no topo! Se mantendo na margem!' : ($remaining !== null ? \App\Support\WeightFormatter::display($remaining) . ' kg' : '—') }}</strong>
         </div>
     </div>
 

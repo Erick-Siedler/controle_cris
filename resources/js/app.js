@@ -628,7 +628,7 @@ document.querySelectorAll('[data-weight-chart]').forEach((participantChart) => {
                     </div>
                     <div class="flex items-center justify-end gap-2">
                         ${goalReached ? `
-                        <span>EM MANUTENÇÃO</span>
+                        <span>Chegou no topo! Se mantendo na margem!</span>
                         ` : `
                         <span>FALTAM:</span>
                         <strong class="rounded border border-black bg-orange-600 px-2 py-1 text-center text-white">${remaining === null ? '—' : formatSigned(remaining)}</strong>

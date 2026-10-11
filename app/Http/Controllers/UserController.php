@@ -223,7 +223,7 @@ class UserController extends Controller
         $response = back()->with('success', 'Peso do dia salvo com sucesso.');
 
         if ($celebrate) {
-            $response->with('goal_reached', 'Meta alcançada! Você está em manutenção.');
+            $response->with('goal_reached', 'Chegou no topo! Se mantendo na margem!');
         }
 
         return $response;

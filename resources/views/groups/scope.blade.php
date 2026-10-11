@@ -148,7 +148,7 @@
                                     $goalReached = \App\Support\WeightGoal::reached($dayDaily?->peso, $additional?->meta_peso);
                                 @endphp
                                 <td class="px-4 py-3 text-center font-semibold {{ $goalReached ? 'bg-emerald-100 text-emerald-900' : ($dayDaily ? 'text-purple-800' : 'text-slate-300') }}"
-                                    @if ($goalReached) title="Meta alcançada · Em manutenção" @endif>
+                                    @if ($goalReached) title="Chegou no topo! Se mantendo na margem!" @endif>
                                     {{ $dayDaily?->peso !== null ? \App\Support\WeightFormatter::display($dayDaily->peso) : '' }}
                                     @if ($goalReached)
                                         <span class="mt-1 block text-[10px] font-medium">✓ Meta alcançada</span>
